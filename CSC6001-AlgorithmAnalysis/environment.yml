@@ -1,0 +1,34 @@
+# environment_template.yml
+
+# 注意：这里的 name 字段可以暂时留空或使用一个通用名称，
+# 因为在复制到具体项目时，你会修改它。
+# name: base_assignment_env 
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.12
+
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  # - scikit-learn
+
+  # - jupyter
+
+  - pip
+  # - ipython
+
+  # - opencv
+  # - scikit-image
+
+  # - pytorch::pytorch
+  # - torchvision
+  # - torchaudio
+  # - cudatoolkit=11.3 # 如果有GPU，指定CUDA版本
+
+  # - pip:
+  #   - some-common-pypi-package

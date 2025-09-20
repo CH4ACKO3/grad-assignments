@@ -1,0 +1,242 @@
+School of Data Science
+Computer Science Ph.D. Program 2025-2026
+
+Student Handbook - Appendix 3 Course Catalog
+
+# Core Course
+
+Course Code: CSC6001
+Course Title: Analysis of Algorithms
+Description: This is an intermediate algorithms course with an emphasis on teaching techniques for the design and analysis of efficient algorithms, emphasizing methods of application. Specifically, the topics include recurrence relation, divide-and-conquer strategies, dynamic programming algorithms, greedy algorithms, theoretical complexity analysis, trees-based algorithms, string processing algorithms, and graph-based algorithms and algorithms.
+
+# Theory and Mathematics Area
+
+Course Code: CSC6011
+Course Title: Theory of Computation
+Description: This course will give an introduction to the theory of computational complexity and standard complexity classes. Students will learn how to classify the computational problems according to how difficult they are to solve computationally. Potential topics include Turing machines, the P versus NP problem, time/space complexity, polynomial time hierarchy, Boolean circuits, randomized computation, the complexity of counting problems, and so on. In addition, some research-oriented topics will be covered, and they may cover hardness of approximation, circuit, proof complexity, communication lower bounds, and average-case complexity.
+
+Course Code: DDA6010
+Course Title: Optimization Theory and Algorithms
+Description: This course covers basic theory and algorithms for unconstrained and constrained optimization problems, convex and non-convex optimization problems, optimality conditions including KKT and duality theory. Algorithms include basic first-order and second-order methods. Some applications of optimization, such as those in data science, will be introduced. The course also requires algorithm implementation and problem solving on computers.
+
+# AI and Machine Learning Area
+
+Course Code: CSC6021
+Course Title: Artificial Intelligence
+Description: Artificial intelligence (AI) aims at solving problems using computer algorithms that mimic human intelligence. This course provides a technical introduction of fundamental concepts of AI. We cover several major parts of AI: Solving problems by search, constraint satisfaction, game playing, Google alpha-go; Knowledge representation using logic, inference and induction, expert systems; Probability distributions, Bayes theorem, Naive Bayes classification, Bayesian networks and decision graphs; Machine learning, classification, clustering, semi-supervised learning; Neural networks, Hopfield networks, and deep learning.
+
+Course Code: CSC6022
+Course Title: Machine Learning
+Description: This course is to provide a comprehensive introduction to machine learning. You will learn about the most fundamental machine learning techniques and gain hands-on practice implementing them. In this course, you'll learn about not only the theoretical underpinnings of the learning techniques, but also learn about how to quickly and powerfully apply these techniques to new problems. Topics will include Supervised Learning such as Regression, Classification. We will cover Over-fitting, Regularization, Deep Double Descent, Bias Variance Trade-off, Curse of Dimensionality, Validation. Bayesian Classifiers, Nearest Neighbor, Logistic Regression, Decision trees, Support vector machines, MLE, MAP, Bayesian inference, the EM and VAE algorithm. Multilayer Feedforward Networks, Deep Networks. Topics will also include Unsupervised Learning such clustering and PCA. If time permits, topic will also include self-supervised learning and Reinforcement Learning. For each topic, we selectively design the content to meet the requirements for postgraduate students in machine learning.
+
+# Systems Area
+
+Course Code: CSC6031
+Course Title: Advanced Computer Architecture
+Description: This course will present an overview of some advanced computer architectures and their underlying design principles. Issues discussed will include scalability and performance evaluation. The underlying technologies such as processor and memory hierarchy, cache and shared memory, and advanced pipelining techniques will be covered. Examples of high performance vector processors, multi-computers and massive parallel processors will be compared. Some novel architectures such as VLIW, fault tolerant systems and data flow machines will also be elaborated.
+
+Course Code: CSC6032
+Course Title: Advanced Operating System
+Description: This course will present an overview of some advanced operating systems and their underlying design principles. Issues discussed will include virtualization techniques for virtual machines and containers, memory management on GPU, I/O management for GPU, and file systems for GPU. Each enrolled student will be asked to design an OS for such systems.
+
+# Database and Software Engineering Area
+
+Course Code: CSC6041
+Course Title: Software Engineering
+Description: In this course, students will learn the concepts of software engineering related to software requirements, software design, software development, software testing, and software maintenance. Students are required to use the knowledge learned from the classes to do software design, software development, software testing, and software maintenance for a given system.
+
+Course Code: CSC6042
+Course Title: Advanced Database Systems
+Description: In this course, the advanced features of DBMS will be described in some details. In addition, the NoSQL databases such as HBase will also be introduced. The difference of SQL and NoSQL databased will be compared in some details. The performance of SQL and NoSQL databased will be compared as well. Students will be required to do programming projects based on SQL and NoSQL databases to have tastes on these two kinds of databases.
+
+# Medium Area
+
+Course Code: CSC6051
+Course Title: Image Processing and Computer Vision
+Description: A picture is worth a thousand words. How does a computer "see" and "understand" a picture? This course is an introductory graduate level course to answer such questions. We will first cover principles of image formation, operations to alter images, feature extraction and other image processing methods to turn images into abstract descriptions. We will then turn to computer vision topics that discuss how to perceive the structure and semantics of the world, including multi-view geometry, structure from motion, and visual localization and recognition. We will also touch upon related topics in machine learning which are widely used in computer vision.
+
+Course Code: CSC6052
+Course Title: Natural Language Processing
+Description: This course provides a comprehensive introduction to natural language processing, focusing on fundamental concepts and techniques, as well as different tasks in natural language processing. Topics of this course include, but are not limited to: mathematical foundation for natural language processing, information theory, text representation, word segmentation and tokenization, part-of-speech tagging, syntactic and semantic parsing, named entity recognition, relation and event extraction, coreference resolution, sentiment analysis, reading comprehension, key-phrase extraction and generation, summarization, dialogue system, machine translation, etc. Students are expected to learn the latest research progress in this area and understand the necessary techniques as well as the tasks and use appropriate algorithms/models to finish a course project.
+
+# Group B Lecture Courses
+
+Course Code: CSC6101
+Course Title: Embedded Systems
+Description: Embedded systems range from portable devices such as digital watches and MP3 players, to large stationary installations like traffic light controllers, programmable logic controllers, and large complex systems like hybrid vehicles, medical imaging systems, and avionics. Complexity varies from low, with a single microcontroller chip, to very high with multiple units, peripherals and networks mounted inside a large equipment rack. In this course, the contents will cover embedded hardware and embedded software. Students will be asked using Hardware Description Languages (HDL) to design a RISC-V embedded processor and its corresponding OS and tool-chain. In addition, students need to use the embedded system they developed to deliver a real-world application.
+
+Course Code: CSC6102
+Course Title: Real-Time Systems
+Description: Real-Time systems are becoming pervasive. Typical examples of real-time systems include Air Traffic Control Systems, Networked Multimedia Systems, Command Control Systems etc. In a Real-Time System the correctness of the system behavior depends not only on the logical results of the computations, but also on the physical instant at which these results are produced. Real-Time systems are classified from a number of viewpoints i.e. on factors outside the computer system and factors inside the computer system. Special emphasis is placed on hard and soft real-time systems. A missed deadline in hard real-time systems is catastrophic and in soft real-time systems it can lead to a significant loss. Hence predictability of the system behavior is the most important concern in these systems. Predictability is often achieved by either static or dynamic scheduling of real-time tasks to meet their deadlines. Static scheduling makes scheduling decisions at compile time and is off-line. Dynamic scheduling is online and uses schedulability test to determine whether a set of tasks can meet their deadlines. In this course, students will learn the concepts of real-time system and use them to design real-time systems.
+
+Course Code: CSC6103
+Course Title: Virtualization Techniques
+Description: In this course, the virtualization techniques used for CPU, memory, and I/O will be described in some details. Some systems developed by or using virtualization techniques will be given as well, for example, the KVM and Docker systems. Students will be asked to design VMs or Dockers for embedded processors as their final programming projects.
+
+Course Code: CSC6104
+Course Title: Advanced File and Storage Systems
+Description: In this course, some advanced file and storage systems will be introduced, for example HDFS, Ceph and Gluster. The design concepts of these file and storage systems will be discussed in some details. Students are required to do a final project for a file and storage system based on the existing file and storage systems.
+
+Course Code: CSC6105
+Course Title: Computer and Network Security
+Description: This course aims to introduce important topics in computer and network security from an applied perspective. Topics include: (i) applied cryptography (e.g., cryptographic primitives, programming with OpenSSL), (ii) network security (e.g., unauthorized accesses, large-scale network attacks, firewall & intrusion detection systems), (iii) web security (e.g., HTTP session management and web attacks), and (iv) system security (e.g., buffer overflow, passwords, file system security), and (v) wireless security (e.g., WiFi security, wireless broadband network security). The course also discusses latest applied security topics according to the current research trends.
+
+Course Code: CSC6106
+Course Title: Blockchain Systems
+Description: The course is designed to inspire students to systematically and critically understand technical aspects of blockchain system, including architecture, consensus model, smart contract, and decentralized applications. Students will be exposed to the latest advancement of blockchain research, including performance optimization techniques, novel blockchain structures and permissioned blockchains.
+
+Course Code: CSC6107
+Course Title: GPU Programming
+Description: In this course, students will learn the architectures of GPUs and the OpenCL and CUDA programming languages. At the end, students need to use either OpenCL or CUDA to design a GPU application or system as their final programming project.
+
+Course Code: CSC6108
+Course Title: Mobile Computing
+Description: This course covers wireless Internet technologies, mobile device architecture, sensing technologies, Internet of Things (IoT), big data and mobile cloud applications. Important topics include smart phones, tablet computers, sensors, RFID and GPS technologies, 3G/4G/5G cellular radio networks, WiFi meshes, Zigbee, mobile OS (Android and iOS), software tools for mobile and cognitive applications. This course emphasizes AI applications using IoT sensing technology for machine cognition and machine learning on smart clouds and edge devices. Specific applications include smart cities, healthcare systems, big-data analytics, mobile and social network analysis.
+
+Course Code: CSC6109
+Course Title: Cloud Computing
+Description: Topics covered include principles of cloud computing, cloud systems architecture, virtualization techniques, cloud services, big data analytics, cloud programming toolkits, and specific cloud applications. We will study some public or private clouds and application tools; such as the AIRS cloud built on CUHK-SZ campus, Amazon AWS, and Aliyun, etc. Cloud programming tools are introduced with Python, Hadoop, Spark, TensorFlow, etc. Interactions between existing clouds, Internet of Things, mobile networks, edge clouds, machine learning, and artificial intelligence (AI) and high-performance computing (HPC) applications.
+
+Course Code: CSC6110
+Course Title: Robotics and Intelligent Systems
+Description: This course trains students with both theories and practice in the field of robotics and intelligent systems. Topics include mathematic foundations, kinematics, dynamics, control, and hardware such as sensors, actuators and controllers, etc. Hand-on practice will also be included for students to design and control a robotic system to reinforce the basic principles learned in lectures. Other intelligent systems such as intelligent vehicles, intelligent wearable interfaces, etc. will also been selected for introduction.
+
+Course Code: CSC6111
+Course Title: Advanced Data Management
+Description: The course, in general, introduces some recent developments of the data management area, in particular in the query optimization of key-value data, graph data, and spatial data. In the first a few lectures a general introduction of data management systems such as system designs, data models, query languages, database architecture and index designs will be given. These lectures hopefully bring those students of less background to the right track. Then, lectures on a number of selected topics that either link to the big data industry or recent research papers will be given. Example planned topics are listed as follows 1) Key-value data management. 2) Graph data management. 3) Spatial data management. 4) Machine learning for data management.
+
+Course Code: CSC6112
+Course Title: Social Computing
+Description: This course aims to study computational techniques used in social computing. More specifically, the course will present state-of-the-art methodologies and approaches to mine social data, signals, and behaviours. The course topics include, but are not limited to: social network theory and analysis, graph mining, link-based analysis and algorithms, web intelligence, web data mining, knowledge discovery on the web, web analytics, web information retrieval, learning to rank, ranking algorithms, relevance feedback, collaborative filtering, recommender systems, human/social computation, social games, opinion mining, sentiment analysis, social monetization, security/privacy issues related to web intelligence, question and answering, and other related topics in social computing.
+
+Course Code: CSC6113
+Course Title: Automated Software Testing and Analysis
+Description: In this course, students will learn both the classic and the state-of-the-art techniques in software testing and analysis for reliability, performance, and security. In particular, it covers coverage metrics, metamorphic testing, mutation testing, combinatorial testing, fuzzing, AIOps, etc. The course will introduce their applications in various domains (e.g., machine translation, database, mobile applications, and cloud computing), focusing on the latest research in this area. Students are expected to understand the techniques reviewed in the class and use the techniques to finish a course project.
+
+Course Code: CSC6114
+Course Title: Virtual Reality
+Description: This course will introduce the concepts of Virtual Reality (VR). The course will teach you everything from the basics of VR- the hardware and the history of VR- to different applications of VR, the psychology of Virtual Reality, and the challenges of the medium. The course is designed for people who are new to VR as a medium. You may have experienced some virtual reality before, and may have some hardware- but this course is suitable to individuals who have never experienced VR and those who do not have much hardware- we will explain Mobile VR as well as devices such as the Oculus Rift and HTC Vive. A learner with no previous experience in Virtual Reality and/or game programming will be able to evaluate existing VR applications, and design, test, and implement their own VR experiences/games using Unity.
+
+Course Code: CSC6115
+Course Title: Parallel Programming
+Description: This course trains students to understand how to program a distributed and parallel computing system. Student will be familiar with parallel and distributed languages such as MPI, Pthread, OpenMP, etc., and use them to design parallel and distributed programs and applications.
+
+Course Code: CSC6116
+Course Title: Computer Graphics
+Description: This course provides an introduction to computer graphics algorithms, software and hardware, focusing on both basic concepts and state-of-the-art techniques, and their cutting-edge applications in multiple problem domains in graphics. Topics include: ray tracing, the graphics pipeline, transformations, texture mapping, shadows, sampling, global illumination, splines, animation, color, and so on. After learning the courses, the students are expected to grasp fundamentals of computer graphics algorithms, real-time rendering, graphics hardware, and OpenGL programming.
+
+Course Code: CSC6117
+Course Title: Human-Computer Interaction
+Description: This course provides an introduction to human-computer interaction (HCI). HCI is an interdisciplinary field that integrates theories and methodologies from computer science, cognition, design, computer graphics, etc., with a focus on interface design, specification, and evaluation. Interface examples include diverse fields such as cellphone apps, car navigation system, elderly health monitor, etc. We also investigate recent advances in HCI technology. Students will work on team projects to design, implement and evaluate computer interfaces. Students will present their project in class. After taking the class, students will be able to design and implement a software interface.
+
+Course Code: CSC6118
+Course Title: Information Theory
+Description: After introducing some classical information theory results, e.g., the source coding theorem and the channel coding theorem, this course covers various research topics that are closely related to information theory, including modern coding theory and network coding theory. This course also discusses how to use these theories for designing network systems.
+
+Course Code: CSC6119
+Course Title: Matrix Analysis
+Description: Matrix analysis and computations are fundamental tools that are widely used to solve various engineering problems. They are also prerequisite for studying advanced information processing and learning techniques. This course will cover both basic and advanced matrix analysis techniques and relevant signal processing and machine learning applications. It includes matrix operations, eigenvalue decomposition, singular value decomposition, positive semidefinite matrix, linear system, least squares problems, Knonecker product and tensor decomposition.
+
+Course Code: DDA6104
+Course Title: Simulation
+Description: A Ph.D level course on the theory and applications of stochastic simulation. Topics include theory and algorithms for random variable generating, variance reduction, importance sampling, stochastic approximation, and their applications in operations research, machine learning and related fields. Introduction to Monte Carlo and discrete-event simulation. Emphasizes underlying theory. Random variate generation, input and output analysis, variance reduction, selection of current research topics. Students will be required to use the simulation techniques to do a final programming project.
+
+Course Code: DDA6040
+Course Title: Dynamic Programming and Stochastic Control
+Description: Dynamic Programming is a fundamental tool widely used to model and solve various engineering problems. This course is developed to study the popular concepts and techniques of dynamic programming. The contents include Principles of Optimality; Dynamic Programming Algorithm; Deterministic Dynamic Programming Problems; Stochastic Dynamic Programming Problems with Perfect and Imperfect Information; Approximate Dynamic Programming and Infinite Horizon Problems.
+
+Course Code: DDA6110
+Course Title: Advanced Convex Optimization
+Description: The course covers two main parts: theoretical foundation and practical algorithms for convex optimization, while various types of convex optimization problems are introduced throughout the coverage. The study of the theoretical foundation focuses on the most fundamental properties of convex sets, convex functions and duality theory. A close attention is also paid to the subject of convex cones, generalized inequalities, generalized convex functions, and convex conic programs. Students learn algorithms and acquire hands-on experience through problem-solving in CVX and MATLAB. Computer projects include solving unconstrained and constrained convex optimization problems via gradient descent, interior-point methods, alternating direction method of multipliers (ADMM) and more.
+
+Course Code: DDA6001
+Course Title: Advanced Stochastic Processes
+Description: A stochastic process is a mathematical model for random phenomena which change in time. With examples such as coin tossing, betting, queueing system, branching process, and stochastic networks, this course introduces a basic theory for modelling stochastic processes and their analyses. It intends to help students to perform applied and theoretical studies on stochastic processes. Topics include random walk, counting process, Markov chain, martingale, Poisson process, Brownian motion and Markov process. A basic probability course is prerequisite for this course, but the most important requirement is effort for thinking.
+
+Course Code: CSC6124
+Course Title: Graph Computing
+Description: In this course, the techniques of graph computing will be introduced, including single-node and multiple-node graph computing techniques. The comparisons of the different graph computing techniques on different machines configuration will also be discussed in some details. The applications by using these graph computing techniques will also be introduced. In addition, some available graph computing tools will be introduced as well. Students will use these tools to do their final programming projects.
+
+Course Code: CSC6125
+Course Title: Privacy, Fairness and Accountability of Algorithms
+Description: This course will introduce privacy, fairness and accountability of algorithms. Students will learn how to evaluate and ensure privacy, fairness and accountability when using or developing new algorithms or technologies. Potential topics contain two main parts: 1) possible effects of algorithms on humans and society, such as ethical and regulatory issues; 2) techniques of evaluating and ensuring privacy, fairness and accountability, including differential privacy, adversarial attack, algorithmic fairness and explainability, social welfare, mechanism design, counterfactual explanation.
+
+Course Code: CSC6126
+Course Title: Advanced Machine Learning
+Description: This course provides a broad introduction to machine learning and statistical pattern recognition. Topics include: supervised learning (generative/discriminative learning, parametric/non-parametric learning, neural networks, support vector machines); unsupervised learning (clustering, dimensionality reduction, kernel methods); learning theory (bias/variance tradeoffs; VC theory; large margins); reinforcement learning and adaptive control. The course will also discuss recent applications of machine learning, such as to robotic control, data mining, autonomous navigation, bioinformatics, speech recognition, and text and web data processing.
+
+Course Code: CSC6127
+Course Title: Data Analytics
+Description: This course introduces techniques, software, applications, and perspectives with massive data. The class will cover, but not be limited to, the following topics: data cleaning and pre-processing, classification, regression, clustering, association and correlation rules, ensemble learning and semi-supervised learning, advanced techniques in distributed file systems such as Google File System, Hadoop Distributed File System, Cloud Store, and map-reduce technology; similarity search techniques for big data such as minhash, locality-sensitive hashing; specialized processing and algorithms for data streams; big data search and query technology; managing advertising and recommendation systems for Web applications. The applications may involve business applications such as online marketing, computational advertising, location-based services, social networks, recommender systems, healthcare services, or other scientific applications.
+
+Course Code: CSC6128
+Course Title: Techniques for Data Mining
+Description: The Data Mining course teaches data mining techniques for both structured data which conform to a clearly defined schema, and unstructured data which exist in the form of natural language text. Specific course topics include pattern discovery, clustering, text retrieval, text mining and analytics, and data visualization. The Capstone project task is to solve real-world data mining challenges using a real-world data set.
+
+Course Code: CSC6129
+Course Title: Reinforcement Learning
+Description: This course offers an advanced introduction to reinforcement learning. Bandit learning and Markov decision processes will be covered. The focus will be on the design, analysis, and application of algorithms for complex reinforcement learning problems. The course will cover some recent developments in the field. Students are expected to have experience with optimization, stochastic processes, linear regression, coding for numerical computation, and writing mathematical proofs.
+
+Course Code: CSC6130
+Course Title: Regularization/Kernel Methods: Theory for the Users
+Description: The course is about the theory of regularization methods and kernel methods, but the purpose of this course is to introduce the theory for the users, that is, the focus is on theory that has direct consequences for the understanding and practical use of the corresponding methods, techniques and algorithms. The course embodies the theory of regularization methods and kernel methods with applications in function estimation, spline smoothing and system identification. The detailed topics include least squares method and its asymptotic analysis and perturbation analysis, regularization methods with regularization term in quadratic form, regularization methods with sparsity promoting regularization such as LASSO, Group LASSO, nuclear norm, and Sparse Bayesian Learning and their analysis, equivalent degree of freedom, reproducing kernel Hilbert space, Mercer theorem, Moore-Aronszajn theorem, representer theorem, kernel design, hyper-parameter estimators and their asymptotic analysis, efficient implementation of regularization methods and kernel methods, robust regularization methods and kernel methods, expectation maximization methods, variational expectation maximization methods, MCMC, and screening tests.
+
+Course Code: CSC6131
+Course Title: Probabilistic Graphical Models
+Description: This is a fundamental course to provide the general concepts and applications of probabilistic graphical models (PGMs). PGMs are a marriage between probability theory and graph theory. They provide a unified tool to not only modeling complex dependencies among random variables using graphs, but also giving a fully probabilistic interpretation of these dependencies. This course will cover theories and applications of both undirected (e.g. Markov Random Fields) and directed (e.g., Bayesian networks) PGMs, and discuss the learning (for both the parameters and the structures) and inference (including both exact and approximate) of these models. Through this course, students will learn and understand the basic concepts of different graphical models, implement certain important PGM learning and inference techniques, and solve complex problems in other fields (e.g., computer vision and natural language processing) using PGMs.
+
+Course Code: CSC6133
+Course Title: Deep Learning for Computer Vision
+Description: Modern Computer Vision is a basic course in the field of computer science and artificial intelligence, mainly introducing algorithms, theories, and practical technologies to make the computer able to "understand" the real world through visual sensors. The course covers image recognition and classification, semantic segmentation, object detection, human behavior analysis, image/video caption generation, as well as some advanced topics about cross-modal data analysis. Through this course, students can not only understand the core tasks to be tackled in the computer vision research community but also learn how to use machine learning/deep learning methods to build models to solve real problems.
+
+Course Code: CSC6134
+Course Title: Advanced Algorithms
+Description: Want to deep dive into several topics of advanced algorithms? In this course, you will learn how they are used when dealing with huge amount of data. In particular, upon successful completion of this course, students will be able to understand, explain and apply key algorithmic concepts and principles, including graph algorithms, string algorithms, geometric algorithms, approximation algorithms, randomized algorithms, and such others. Notice that prior experience in algorithms and data structures is required, as this course starts with the advanced areas.
+
+Course Code: CSC6135
+Course Title: Computational Imaging
+Description: Computational imaging breaks the limitation of traditional digital imaging to acquire the information deeper (e.g., high dynamic range imaging and low light imaging) and broader (e.g., spectrum, light field, and 3D imaging). Driven by industry, especially mobile phone manufacturer medical and automotive, computational imaging has become ubiquitous in our daily lives and plays a critical role in accelerating the revolution of industry. This course includes the topics of basic/advanced imaging methods, advanced topics, and covers visual system, ISP, HDR, light-field imaging, spectrum imaging, low light imaging, 3D imaging, and end-to-end camera design.
+
+Course Code: CSC6136
+Course Title: Deep Learning for Natural Language Processing
+Description: Natural language processing is an interdisciplinary field of linguistics, computer science, and artificial intelligence. This course is mainly introducing how to leverage deep learning to solve NLP tasks including text classification, machine translation, document retrieval, question answering, text generation, dialogue system, and text prompt-based image generation. Nowadays, NLP has been revolutionized to use large-scale Pre-trained Language Models (PLMs) like BERT, GPT3, and ChatGPT; therefore, we will put more attention on PLMs and beyond. This course covers but is not limited to word vectors, RNN/CNN/Transformer, natural language generation, PLMs (e.g., BERT, T5, BART, and GPT), prompt learning, retrieval-augmented generation, in-context learning, knowledge representation and reasoning, scale laws and giant PLMs (e.g. GPT3 and PaLM), dialogue-based PLMs (e.g., ChatGPT), language-vision pre-training (e.g., CLIP and Dall-E), PLMs for other domains, efficiency for PLMs, risks and biases in PLMs. Through this course, students can learn 1) the basic knowledge about modern NLP (especially using PLMs); 2) how to prepare textual data, train models, and solve specific NLP tasks; and 3) leverage prompts or APIs of PLMs to solve daily tasks and even build applications.
+
+Course Code: CSC6137
+Course Title: Generative Models
+Description: Generative models have become an important topic in machine learning. This course is designed as an advanced version of this topic and will provide a deep introduction to generative models. In this course, students will learn about not only the theoretical underpinnings of the generative model techniques, but also learn about how to quickly and powerfully apply these techniques to new problems. The course topics include GAN, Variational autoencoder, normalizing flows, autoregressive generative models, score-based generative models and probabilistic diffusion models. Students will also be trained to get hands-on practice implementing them.
+
+Course Code: CSC6138
+Course Title: Advanced Matrix Computation
+Description: This is a hands-on course on numerical linear algebra and matrix computations emphasizing computational techniques dealing with algorithmic methodologies that are critical for applications in machine learning, optimization, statistics and scientific computing. Matrix computation methods complement algorithms focusing on discrete objects such as lists, trees and graphs, and those methods are becoming ever more critical with the rapid advances in AI technology. The topics covered include algorithms for solving linear systems, linear least squares problems, eigenvalue and singular value problems as well as iterative methods such as Arnoldi methods, Krylov subspace methods (including GMRES and preconditioned CG). Fundamental ideas of conditioning and numerical stability will also be covered in detail. In addition, several modern algorithms and principles for large-scale matrix computations and problems are studied such as convolutions, fast fourier transforms, and randomization techniques.
+
+Course Code: CSC6139
+Course Title: Advanced High Performance Computing
+Description: This course provides students with advanced research topics in high performance computing. Topics include: High performance computing with GPUs, the design and use of large scale distributed memory computing clusters, the design and use of MPI, analyzing the performance of parallel programs, reuse of cache and registers in high performance computing, fault tolerant high performance computing, energy efficient high performance computing, high performance computing for AI and ML.
+
+Course Code: CSC6201
+Course Title: Selected Topics in CS (I)
+Description: Advanced topics in computer applications.
+
+Course Code: CSC6202
+Course Title: Selected Topics in CS (II)
+Description: Advanced topics in computer applications.
+
+Course Code: CSC6203
+Course Title: Selected Topics in CS (III)
+Description: Advanced topics in computer applications.
+
+Course Code: CSC6300
+Course Title: Thesis Research (I)
+Description: A student is required to meet with his/her supervisor regularly who provides necessary guidance and supervision on the student’s thesis research and monitors his/her academic progress.
+
+Course Code: CSC8202
+Course Title: Academic Seminars
+Description: There will be a variety of research seminars (colloquia) given by external or internal speakers. A graduate student is generally required to attend these seminars even when the topics involved are not in his/her research area.
+
+Course Code: CSC6301
+Course Title: Thesis Research (II)
+Description: A student is required to meet with his/her supervisor regularly who provides necessary guidance and supervision on the student’s thesis research and monitors his/her academic progress.
+
+Course Code: GGE5001 D
+Course Title: Academic Writing and Presentation
+Description: This course is specifically designed for reseach postgraduate students. It aims to develop academic English writing skills and communication competence in international academic context. It will provide hands-on practice in writing an academic research thesis and research paper. It will also provide workshops to improve the communication and public speaking skills. There are workshops, assignments and a final examination. At the end of this course, postgraduate students are expected to master professional skills of writing academic proposals, thesis and scientific papers, and presenting research results.

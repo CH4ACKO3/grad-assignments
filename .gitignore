@@ -159,3 +159,18 @@ desktop.ini
 # Uncomment if you want to ignore assignment submissions
 # assignment_*/
 # submission_*/
+
+# LaTeX generated files
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lot
+*.lof
+*.lot
+*.lof

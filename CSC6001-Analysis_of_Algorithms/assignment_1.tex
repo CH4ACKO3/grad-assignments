@@ -1,0 +1,601 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+% \usepackage{algorithmicx}
+\usepackage{algpseudocode}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{forest}
+\usetikzlibrary{trees, positioning, arrows.meta, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除“Chapter”字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Analysis of Algorithms - Assignment 1}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+\maketitle
+\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+\begin{KeepFromToc} % 将目录本身排除在目录之外
+\tableofcontents
+\end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Problem 1: Array Selection Algorithm}
+
+\section{Optimized Selection Algorithm}
+The algorithm described below is the \textbf{Median-of-Medians} algorithm, which finds the $k$-th smallest element\
+in an unsorted array of $n$ elements in a recursive style.
+
+Given an array $A$ of $n$ distinct elements and an integer $k$ (where $1 \le k \le n$),\
+the following algorithm returns the $k$-th smallest element in $A$:
+
+\begin{enumerate}
+    \item \textbf{Divide into Groups:} \\
+    Divide the $n$ elements of array $A$ into $\lceil \frac{n}{5} \rceil$\footnotemark groups. Each group will contain 5 elements,\
+    except possibly the last group, which may contain between 1 and 5 elements.
+    \footnotetext{Some might be curious why is 5 here; this is because 5 is the smallest group size that satisfies linear worst-case complexity. A more detailed discussion can be found in the \hyperref[just]{justification} section.}
+    \vspace{-1em}
+
+    \item \textbf{Find Group Medians:} \\
+    For each of the $\lceil \frac{n}{5} \rceil$ groups, sort the elements within the group and find the median.\
+    This can be done with a constant number of comparisons, since each group has at most 5 elements.
+
+    \item \textbf{Find Median-of-Medians (Pivot Selection):} \\
+    Create a new array $M$ consisting of all the medians found in Step 2. The size of $M$ is $\lceil \frac{n}{5} \rceil$.\
+    Recursively apply the algorithm to $M$ to find its \textbf{median}\footnotemark. Let this element be $x$, which will serve as the pivot.
+
+    \footnotetext{It's worth noting that the \textbf{median} here is not necessarily the median of array $A$.}
+
+    \item \textbf{Partition:} \\
+    Partition the original array $A$ into three subarrays based on the pivot $x$:
+    \begin{itemize}
+        \item $L = \{a \in A \mid a < x\}$ (elements strictly less than $x$)
+        \item $E = \{a \in A \mid a = x\}$ (elements equal to $x$)
+        \item $G = \{a \in A \mid a > x\}$ (elements strictly greater than $x$)
+    \end{itemize}
+
+    Let $|L|$, $|E|$, and $|G|$ denote the number of elements in these subarrays, respectively.
+
+    \item \textbf{Recursive Search:} \\
+    Determine which subarray contains the $k$-th smallest element and recursively apply the algorithm to that subarray:
+    \begin{itemize}
+        \item If $k \le |L|$, the $k$-th smallest element is in $L$. Recursively apply the algorithm to find the $k$-th smallest element in $L$.
+        \item If $|L| < k \le |L| + |E|$, the $k$-th smallest element is $x$. Return $x$.
+        \item Otherwise, $k > |L| + |E|$, the $k$-th smallest element is in $G$. Recursively apply the algorithm to find the $(k-|L|-|E|)$-th smallest element in $G$.
+    \end{itemize}
+\end{enumerate}
+
+\section{Recurrence Relation Analysis}
+Let $T(n)$ be the worst-case number of comparisons required by the algorithm described above for an input of size $n$.
+
+\begin{enumerate}
+    \item \textbf{Divide into Groups:} \\
+    This step involves no comparisons, just array manipulation. $O(1)$.
+
+    \item \textbf{Find Group Medians:}
+    \begin{itemize}
+        \item There are $\lceil \frac{n}{5} \rceil$ groups.
+        \item Each group has at most 5 elements. Find median of at most 5 elements requires a constant number of comparisons\footnotemark.
+        \item Thus, finding all group medians requires $O(\lceil \frac{n}{5} \rceil \cdot 1) = O(n)$ comparisons.
+    \end{itemize}
+
+    \footnotetext{It can be proven that using tournament sort, the median of 5 elements can be found in the worst case of 6 comparisons.}
+
+    \item \textbf{Find Median-of-Medians (Pivot Selection):} \\
+    We recursively apply the algorithm to the array $M$ of size $\lceil \frac{n}{5} \rceil$ to find its median\
+    (i.e., the $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$-th smallest element),\
+    which contributes $T(\lceil \frac{n}{5} \rceil)$ to the recurrence.
+
+    \item \textbf{Partition:} \\
+    Partitioning the $n$ elements around based on pivot $x$ takes $O(n)$ comparisons.
+
+    \item \textbf{Recursive Search:}
+    \begin{itemize}
+        \item Consider the pivot $x$. It is the median of the $\lceil \frac{n}{5} \rceil$ group medians.
+        \item At least half of these group medians are less than or equal to $x$.\\
+        That is, at least $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$ elements are $\leq x$.
+        \item Each such group median $m_i$ comes from a group of 5 elements, and at least 3 elements in that group are $\leq m_i$.
+        \item Therefore, at least $3 \cdot \lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$ elements in the original array $A$ are $\leq x$.
+        \begin{itemize}
+            \item Since $\lceil \frac{n}{x} \rceil \geq \frac{n}{x}$, we have $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil \geq \frac{n}{10}$
+            \item Thus, as least $\frac{3n}{10}$ elements are $\leq x$.
+            \item Which implies that $|L| + |E| \ge \frac{3n}{10}$.
+        \end{itemize}
+        \item Similarly, at least $\frac{3n}{10}$ elements are $\geq x$. Which implies that $|G| + |E| \ge \frac{3n}{10}$.
+        \item For these bounds, we can deduce the maximum size of the recursive call:
+        \begin{itemize}
+            \item $|L| = |A| - |G| - |E| \leq n - \frac{3n}{10} = \frac{7n}{10}$.
+            \item $|G| = |A| - |L| - |E| \leq n - \frac{3n}{10} = \frac{7n}{10}$.
+            \item Therefore, the maximum size of the recursive call is on a subarray of size at most $\frac{7n}{10}$.\
+            Which contributes $T(\frac{7n}{10})$ to the recurrence.
+        \end{itemize}
+    \end{itemize}
+    Combining all above, we have the recurrence relation for the worst-case comparison number:
+    \begin{align*}
+        T(n) \leq T(\lceil \frac{n}{5} \rceil) + T(\frac{7n}{10}) + O(n)
+    \end{align*}
+    For simplicity, ignoring ceilings, we have:
+    \begin{align*}
+        T(n) \leq T(\frac{n}{5}) + T(\frac{7n}{10}) + O(n)
+    \end{align*}
+\end{enumerate}
+
+\section{Complexity Analysis}
+The complexity of the above \textbf{Median-of-Medians} algorithm can be analyzed using substitution method.
+We can first re-write the recurrence relation as:
+\begin{align*}
+    T(n) \leq T(\frac{n}{5}) + T(\frac{7n}{10}) + cn
+\end{align*}
+for some constant $c > 0$.
+
+Assume that $T(n) \leq dn$ for some constant $d > 0$ and for all $n \geq 1$, we need to find a $d$ such that this assumption holds.
+Substitude $dn$ into the recurrence:
+\begin{align*}
+    T(n) &\leq d\frac{n}{5} + d\frac{7n}{10} + cn \\
+    &= \frac{9dn}{10} + cn \leq dn
+\end{align*}
+Which gives $d \geq 10c$. Thus, we can choose $d = 10c$ to make the assumption holds.
+For base case ($n \leq 5$), since it takes constant time, we can always choose $d$ to be large enough to ensure the solution holds.
+
+To this end, we have proved that the worst-case time complexity of the \textbf{Median-of-Medians} algorithm is $O(n)$.
+
+\section*{Justification}
+\label{just}
+In this additional section, we discuss why the group size is $5$.
+
+In the previous section, we proved that for a group size of $5$, at most, a subproblem of size $\frac{7n}{10}$ needs to be solved.
+Now, let's assume the group size is $k$.
+This can be rephrased as: among $\lceil \frac{n}{k} \rceil$ medians, $\lceil \frac{\lceil \frac{n}{k} \rceil}{2} \rceil$ are smaller than the pivot.
+where, in each group, $\lceil \frac{k}{2} \rceil$ elements are smaller or equal than the pivot. This totals $\lceil \frac{\lceil \frac{n}{k} \rceil}{2} \rceil \lceil \frac{k}{2} \rceil \geq \frac{n}{4}$\footnotemark,
+meaning the maximum size of the subproblem is $n-\frac{n}{4}=\frac{3n}{4}$.
+In the recurrence relation, we need to handle subproblems $T(\frac{n}{k})$ and $T(\frac{3n}{4})$.
+For this recurrence relation to resolve to $O(n)$, it needs to be ensured that $\frac{n}{k}+\frac{3n}{4} < n$, that is, $k > 4$.
+
+\footnotetext{This argument is still imprecise, but we can test $k=2\sim4$ to get the same result.}
+
+\chapter{Problem 2: Search in Bitonic Sequence}
+The running time of the \textbf{Search in Bitonic} algorithm can be broken down as follows:
+\begin{enumerate}
+    \item \textbf{Divide:}
+    \begin{itemize}
+        \item Dividing the array into two halves involves calculating a middle index, which takes $O(1)$ time.
+        \item To determine if a subarray is bitonic or monotonic, we can compare a few key elements ($a_1, a_2, a_{n-1}, a_n$), which takes $O(1)$ time.\
+        So analyzing the monotonicity of both halves takes also $O(1)$ time.
+    \end{itemize}
+    \item \textbf{Conquer:}
+    \begin{itemize}
+        \item \textbf{Scenario 1}: One half is bitonic (size $N/2$), the other is monotonic (size $N/2$).\\
+        The recursive search on the bitonic half contributes $T(N/2)$.
+        The binary search on the monotonic half takes $O(\log(N/2)) = O(\log N)$ time.
+        Total time for this scenario: $T(N/2) + O(\log N)$.
+        \item \textbf{Scenario 2}: Both halves are monotonic (each size $N/2$).\\
+        Total time for this scenario: $O(\log N)$.
+    \end{itemize}
+    \item \textbf{Combine:} \\
+    Combining the answers from the left and right halves takes $O(1)$ time.
+\end{enumerate}
+
+The worst-case scenario occurs when the algorithm always has to recurse on a bitonic half. Therefore, the worst-case recurrence relation is:
+\begin{align*}
+    T(N) = T(\frac{N}{2}) + O(\log N)
+\end{align*}
+
+For simplicity, we can re-write it as:
+\begin{align*}
+    T(N) = T(\frac{N}{2}) + c\log N
+\end{align*}
+For some constant $c > 0$. This recurrence can be solved by unrolling it:
+\begin{align*}
+    T(N) &= T(\frac{N}{2}) + c\log N \\
+    &= T(\frac{N}{4}) + c\log N + c\log \frac{N}{2} \\
+    &= T(\frac{N}{8}) + c\log N + c\log \frac{N}{2} + c\log \frac{N}{4} \\
+    &...
+\end{align*}
+This pattern continues until the base case, $T(1)$ or $T(2)$, which takes $O(1)$ time. The recursion depth is $k = \log N$. Thus, we have:
+\begin{align*}
+    T(N) &= T(\frac{N}{2^k}) + c \sum_{i=0}^{k-1} \log(\frac{N}{2^i}) \\
+    &= T(1) + c \sum_{i=0}^{\log N - 1} (\log N - i) \\
+    &= O(1) + c \frac{\log N (\log N + 1)}{2} \\
+    &= O(1) +O(\log^2 N) = O(\log^2 N)
+\end{align*}
+Therefore, the worst-case time complexity of the \textbf{Search in Bitonic} algorithm is $O(\log^2 N)$.
+
+\chapter{Problem 3: Master Theorem}
+\begin{enumerate}
+    \item \textbf{$T(n) = 3T(n/2) + n^2$}
+    \begin{itemize}
+        \item $a = 3, b = 2, f(n) = n^2$
+        \item $f(n) = \Theta(n^2) \rightarrow d = 2$
+        \item $a = 3 < 4 = 2^2 = b^d$
+        \item $T(n) = \Theta(n^d) = \Theta(n^2)$ (case 1)
+    \end{itemize}
+    
+    \item \textbf{$T(n) = 5T(n/4) + n(\log n)^2$}
+    
+    Let $T_L(n) = 5T_L(n/4) + n$
+    \begin{itemize}
+        \item $a = 5, b = 4, f(n) = n$
+        \item $f(n) = \Theta(n) \rightarrow d = 1$
+        \item $a = 5 > 4^1 = b^d$
+        \item $T_L(n) = \Theta(n^{\log_b a}) = \Theta(n^{\log_4 5})$ (case 3)
+    \end{itemize}
+    Let $T_U(n) = 5T_U(n/4) + n^{\log_4 5}$
+    \begin{itemize}
+        \item $a = 5, b = 4, f(n) = n^{\log_4 5}$
+        \item $f(n) = \Theta(n^{\log_4 5}) \rightarrow d = \log_4 5$
+        \item $a = 5 = 4^{\log_4 5} = b^d$
+        \item $T_U(n) = \Theta(n^d \log n) = \Theta(n^{\log_4 5} \log n)$ (case 2)
+    \end{itemize}
+    Since we have $T_L(n) < T(n) < T_U(n)$, we can give the following asymptotic bound:
+    \begin{align*}
+        T(n) = \Omega(n^{\log_4 5}) \text{ and } T(n) = O(n^{\log_4 5} \log n)
+    \end{align*}
+
+    Well, actually we can also derive an asymptotically tight bound for $T(n)$ by substitution and unrolling the recurrence:
+    \begin{align*}
+        T(n) &= 5T(n/4) + n(\log n)^2 \\
+        n &\mapsto 4^k \\
+        T(4^k) &= 5T(4^{k-1}) + 4^k(\log 4^k)^2 \\
+        &= 5T(4^{k-1}) + 4^{k}(2k)^2 \\
+        \frac{T(4^k)}{4^k} &= \frac{5}{4}\frac{T(4^{k-1})}{4^{k-1}} + (2k)^2 \\
+        S(k) &:= \frac{T(4^k)}{4^k} \\
+        S(k) &= \frac{5}{4}S(k-1) + (2k)^2 \\
+        &= (\frac{5}{4})^k S(0) + \sum_{i=1}^{k} (\frac{5}{4})^{k-i} (2i)^2 \\
+        &= (\frac{5}{4})^k T(1) + 4(\frac{5}{4})^k \sum_{i=1}^{k} (\frac{4}{5})^{i} i^2
+        \displaybreak[4] \\
+        0<x<1 \rightarrow \sum_{i=1}^{\infty} x^{i} i^2 = \frac{x(1+x)}{(1-x)^3} &\rightarrow 0 < \sum_{i=1}^{k} (\frac{4}{5})^{i} i^2 < \frac{\frac{4}{5}(1+\frac{4}{5})}{(1-\frac{4}{5})^3} = 180 \\
+        \rightarrow S(k) &= (\frac{5}{4})^k [T(1) + 4\sum_{i=1}^{k} (\frac{4}{5})^{i} i^2] = \Theta((\frac{5}{4})^k) \\
+        T(n) &= n S(\frac{\log n}{2}) = \Theta(n(\frac{5}{4})^{\frac{\log n}{2}}) = \Theta(n(\frac{\sqrt{5}}{2})^{\log n})
+    \end{align*}
+
+    \item \textbf{$T(n) = 3T(\frac{n}{3}-3) + \frac{n}{3}$}
+
+    Let $T_L(n) = 3T_L(\frac{n}{4}) + \frac{n}{3}$\footnotemark
+    \begin{itemize}
+        \item $a = 3, b = 4, f(n) = \frac{n}{3}$
+        \item $f(n) = \Theta(n) \rightarrow d = 1$
+        \item $a = 3 < 4^1 = b^d$
+        \item $T_L(n) = \Theta(n^d) = \Theta(n)$ (case 1)
+    \end{itemize}
+    \footnotetext{Since for sufficiently large $n$ ($n \geq 36$), $\frac{n}{4} \leq \frac{n}{3} - 3$ is guaranteed,\
+    it can therefore be considered not to affect the asymptotic properties.}
+
+    Let $T_U(n) = 3T_U(\frac{n}{3}) + \frac{n}{3}$
+    \begin{itemize}
+        \item $a = 3, b = 3, f(n) = \frac{n}{3}$
+        \item $f(n) = \Theta(n) \rightarrow d = 1$
+        \item $a = 3 = 3^1 = b^d$
+        \item $T_U(n) = \Theta(n^d \log n) = \Theta(n \log n)$ (case 2)
+    \end{itemize}
+    Since we have $T_L(n) < T(n) < T_U(n)$, we can give the following asymptotic bound:
+    \begin{align*}
+        T(n) = \Omega(n) \text{ and } T(n) = O(n \log n)
+    \end{align*}
+
+    \item \textbf{$T(n) = 2T(\sqrt{n}) + \log n$}
+
+    By making the substitution $n \mapsto 2^k$ and $S(k) = T(2^k)$, the recurrence relation can be re-write as:
+    \begin{align*}
+        T(2^k) &= 2T(2^{k-1}) + \log 2^k \\
+        S(k) &= 2S(k-1) + k
+    \end{align*}
+    By unrolling the recurrence, we have:
+    \begin{align*}
+        S(k) &= 2S(k-1) + k \\
+        &= 2^k S(0) + \sum_{i=1}^{k} 2^{k-i} i \\
+        &= 2^k T(1) + 2^k \sum_{i=1}^{k} \frac{i}{2^i} \\
+        0 < x < 1 \rightarrow \sum_{i=1}^{\infty} x^{i} i &= \frac{x}{(1-x)^2} \rightarrow 0 < \sum_{i=1}^{k} \frac{i}{2^i} < \frac{0.5}{0.5^2} = 2 \\
+        \rightarrow S(k) &= \Theta(2^k) \\
+        T(n) &= S(\frac{\log n}{2}) = \Theta(2^{\frac{\log n}{2}}) = \Theta(\sqrt{n})
+    \end{align*}
+\end{enumerate}
+
+\chapter{Problem 4: Recursion Tree}
+\begin{center}
+    \begin{tikzpicture}[
+        % 定义节点样式
+        node distance=3cm, % 节点之间的默认距离
+        level distance=3cm, % 每一层之间的垂直距离
+        every node/.style={
+            % draw, % 绘制边框
+            circle, % 圆形节点
+            minimum size=0.8cm, % 最小尺寸
+            inner sep=0.5pt, % 内部填充
+            font=\small, % 字体大小
+        },
+        % 定义边样式
+        edge from parent/.style={
+            draw, % 绘制边
+            -latex, % 箭头样式
+            thick % 粗细
+        },
+        % 定义不同层级的节点样式（可选，但很有用）
+        level 1/.style={
+            sibling distance=3.8cm,
+        }, % 第一层子节点之间的距离
+        level 2/.style={
+            sibling distance=0.9cm,
+        }, % 第二层子节点之间的距离
+        level 3/.style={
+        } % 第三层子节点之间的距离
+    ]
+        % 根节点
+        \node (root) {$g(n) = n \log n$}
+            % 第一个子节点
+            child { node {$g(\frac{n}{5})$}
+                child { node (e_1) {$g(\frac{n}{25})$}}
+                child { node (e_2) {$g(\frac{n}{25})$}}
+                child { node (e_3) {$g(\frac{n}{25})$}}
+                child { node (e_4) {$g(\frac{2n}{25})$}}
+            }
+            child { node {$g(\frac{n}{5})$}
+                child { node (e_5) {$g(\frac{n}{25})$}}
+                child { node (e_6) {$g(\frac{n}{25})$}}
+                child { node (e_7) {$g(\frac{n}{25})$}}
+                child { node (e_8) {$g(\frac{2n}{25})$}}
+            }
+            child { node {$g(\frac{n}{5})$}
+                child { node (e_9) {$g(\frac{n}{25})$}}
+                child { node (e_10) {$g(\frac{n}{25})$}}
+                child { node (e_11) {$g(\frac{n}{25})$}}
+                child { node (e_12) {$g(\frac{2n}{25})$}}
+            }
+            child { node (r_1) {$g(\frac{2n}{5})$}
+                child { node (e_13) {$g(\frac{2n}{25})$}}
+                child { node (e_14) {$g(\frac{2n}{25})$}}
+                child { node (e_15) {$g(\frac{2n}{25})$}}
+                child { node (r_2) {$g(\frac{4n}{25})$}}
+            };
+        % 可以在节点旁边添加工作量
+        % 假设根节点的工作量是 cn
+        \node[right=0.5cm of r_2] (work_r_2) {$O(n\log n)$};
+        \node[] (work_r_1) at (work_r_2.north |- r_1.east) {$O(n\log n)$};
+        \node[] (work_root) at (work_r_2.north |- root.east) {$n\log n$};
+        \draw[-latex, dashed] ($(root.east) + (0.2cm, 0)$) -- ($(work_root.west) - (0.1cm, 0)$);
+        \draw[-latex, dashed] ($(r_1.east) + (0.1cm, 0)$) -- ($(work_r_1.west) - (0.1cm, 0)$);
+        \draw[-latex, dashed] ($(r_2.east) + (0.1cm, 0)$) -- ($(work_r_2.west) - (0.1cm, 0)$);
+
+        \foreach \node in {e_1, e_2, e_3, e_4, e_5, e_6, e_7, e_8, e_9, e_10, e_11, e_12, e_13, e_14, e_15, r_2} {
+            \draw[dashed, thick] (\node.south) -- ($(\node.south) - (0, 0.5cm)$);
+        }
+        
+        \coordinate (last_middle) at (root.south |- r_2.east);
+        \node[below=1cm of last_middle] (central_dot) {$\dots$};
+        \node[] (right_dot) at (work_r_2.south |- central_dot.east) {$\dots$};
+        \draw[thick] ($(right_dot.south) - (1cm, 0.3cm)$) -- ($(right_dot.south) - (-0.5cm, 0.3cm)$);
+        \node[] (total) at ($(right_dot.south) - (0.7cm, 0.7cm)$) {$\text{Total: }O(n\log^2 n)$};
+
+        \coordinate[left=0.4cm of e_1] (arrow_mid);
+        \coordinate (arrow_up) at (arrow_mid |- root);
+        \coordinate (arrow_down) at (arrow_mid |- central_dot);
+
+        \draw[latex-latex, thick] (arrow_down) -- (arrow_up) node[midway, fill=white, inner sep=0pt] {$log_{5/2} n$};
+        % \draw[dotted, thick] ($(last_middle) - (-0.25, 1.5cm)$) -- ($(last_middle) - (0.25, 1.5cm)$);
+
+        % 假设第一层节点的工作量是 cn/2
+        % \node[above=0.2cm of left_child-1] (work_l1_1) {$cn/2$}; % T(n/2)-1 是第一个 T(n/2) 节点
+        % \node[above=0.2cm of right_child-1] (work_l1_2) {$cn/2$}; % T(n/2)-2 是第二个 T(n/2) 节点
+        % 也可以直接在节点内部添加工作量，或者在节点旁边用 `label`
+        % 比如，修改 every node/.style={draw, circle, minimum size=0.8cm, inner sep=1pt, font=\small}
+        % 为 every node/.style={draw, circle, minimum size=0.8cm, inner sep=1pt, font=\small, label={[font=\tiny]above:$cn$}}
+        % 但这样会给所有节点都加，通常是手动添加或者用更复杂的逻辑。
+        \pgfresetboundingbox
+    \end{tikzpicture}
+\end{center}
+
+\vspace{9cm}
+The derivation of the cost for each layer is as follows: Let the set $M = \{m_1, m_2, ...\}$ denote the set of subproblem sizes for each layer.
+It can be proven that $\sum_{i=1}^{|M|} m_i \leq n$ (this is because for any problem decomposition, the subproblem sizes are $3n/5 + 2n/5 = n$).
+
+Since we have $g(n) + g(m) \leq g(n+m)$ for $g(n) = n \log n$ and any $n, m \geq 2$, one can prove that
+$\sum_{i=1}^{|M|} (m_i \log m_i) \leq (\sum_{i=1}^{|M|} m_i) \log (\sum_{i=1}^{|M|} m_i) \leq n \log n$ holds if all $m_i \geq 2$.
+
+Intuitively, the solution to the recurrence relation is at most the number of layers multiplied by the cost of each layer,
+i.e., $O(\log_{5/2} n \times n \log n) = O(n \log^2 n)$. Here we use the substitution method to prove that this is indeed an asymptotic upper bound for the recurrence solution:
+
+Assume that $T(n) \leq dn \log^2 n$ holds for some constant $d > 0$ and for all $n \geq 1$, we need to find a $d$ such that this assumption holds.
+Substitude it into the recurrence relation:
+
+\begin{align*}
+    T(n) &= 3T(\frac{n}{5}) + T(\frac{2n}{5}) +  n \log n \\
+    &\leq 3d\frac{n}{5} \log^2 \frac{n}{5} + d\frac{2n}{5} \log^2 \frac{2n}{5} + n \log n \\
+    &=3d\frac{n}{5} (\log^2 n - 2 \log n \log 5 + \log^2 5) \\
+    &\quad+d\frac{2n}{5} (\log^2 n - 2 \log n \log \frac{5}{2} + \log^2 \frac{5}{2}) + n \log n \\
+    &= dn \log^2 n + n \log n [1-\frac{2d}{5}(5\log 5 - 2\log 2)] + \frac{dn}{5}(3\log^2 5 + 2\log^2 \frac{5}{2}) \\
+\end{align*}
+
+To ensure the RHS $\leq dn \log^2 n$, we need to have:
+\begin{align*}
+    n \log n [1-\frac{2d}{5}(5\log 5 - 2\log 2)] + \frac{dn}{5}(3\log^2 5 + 2\log^2 \frac{5}{2}) &\leq 0 \\
+    \log n [1-\frac{2d}{5}(5\log 5 - 2\log 2)] + \frac{d}{5}(3\log^2 5 + 2\log^2 \frac{5}{2}) &\leq 0 \text{ (Divide by $n$)} \\
+\end{align*}
+In order for this inequality to hold for sufficiently large $n$, we must make the coefficient of $\log n$ negative or zero:
+\begin{align*}
+    1-\frac{2d}{5}(5\log 5 - 2\log 2) &\leq 0 \\
+    \frac{2d}{5}(5\log 5 - 2\log 2) &\geq 1 \\
+    d &\geq \frac{5}{2(5\log 5 - 2\log 2)}
+\end{align*}
+Therefore, we can choose $d = \frac{5}{2(5\log 5 - 2\log 2)}$ to ensure the solution holds.
+For base case ($n \leq 1$)\footnotemark, since it takes constant time, we can always choose $d$ to be large enough to ensure the solution $T(n) \leq dn \log^2 n$ holds.
+
+\footnotetext{Here, we do not need to guarantee $\frac{n}{5} \geq 2$, because the inequality $g(n)+g(m) \leq g(n+m)$ was not used when solving the recurrence relation using the substitution method.}
+
+To this end, we have proved that the asymptotic complexity of the recurrence relation is $O(n \log^2 n)$.
+
+\chapter{Problem 5: Password Generation Counting}
+\section{Recurrence Relation Analysis}
+Let $T(n)$ be the \textbf{number of operations} required to count the \textbf{number of valid passwords} $S(n)$ of digital sum $n$.
+The following algorithm gives a recursive solution to this problem:
+\begin{itemize}
+    \item If $n = 1$, or $n$ has been visited before, return $S(n)$. It's trivial that $S(1) = 1$.
+    \item Otherwise, recursively call the algorithm to count the number of valid passwords of digital sum $n-1$, and return the sum $S(n) = \sum_{i=1}^{\min(9, n-1)} S(n-i)$.
+\end{itemize}
+The recurrence relation can be written as:
+\begin{align*}
+    T(n) &= T(n-1) + O(1)
+\end{align*}
+This is because in each step $n$, we only need to call the algorithm once on $n-1$, which contributes $T(n-1)$ to the recurrence,
+The remaining operation is just a single summation of at most ten elements $\sum_{i=1}^{\min(9, n-1)} S(i)$ which takes constant time, because $S(1)$ through $S(n-1)$ have all been pre-calculated after calling the algorithm for $n-1$.
+
+The base case is $T(1) = c$, since there is only one valid password of digital sum 1, which is `1'.
+
+The total number of operations $T(n)=O(n)$ can be immediately derived by unrolling the recurrence relation.
+\section{Pseudocode}
+
+\begin{algorithm}[H]
+    \caption{Count Passwords with Sum $S$}
+    \label{alg:count_passwords}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} Target sum $n$
+        \State \textbf{Output:} Total number of different passwords
+        \State \textbf{Global/Shared:} `S' array of size $(n+1)$, initialized with $0$, $S[1] \gets 1$
+        \Function{CountPasswordsRecursive}{$n$}
+            \If{$n < 1$}
+                \State \Return{$0$} \Comment{Boundary Case}
+            \EndIf
+            \If{$S[n] > 0$}
+                \State \Return{$S[n]$} \Comment{Pre-calculated}
+            \EndIf
+            \State ans $\gets 0$
+            \For{$i$ from $1$ to $9$}
+                \State ans $\gets$ ans + \Call{CountPasswordsRecursive}{$n - i$}
+            \EndFor
+            \State $S[n] \gets ans$ \Comment{Store result}
+            \State \Return $ans$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+\chapter{Problem 6: Ancient Pyramid Treasure Hunt}
+\section{State Definition}
+First, it can be proven that any valid path from the bottom-left corner to the top-right corner
+is also a valid path from the top-right corner to the bottom-left corner;
+therefore, we can transform the problem into finding the maximum number of non-duplicate treasures
+that can be collected by two people starting simultaneously from the bottom-left corner and arriving at the top-right corner.
+
+A direct solution would be to record the current positions of both people and the corresponding number of (non-duplicate) treasures collected,
+which would have an $O(n^4)$ complexity; A straightforward observation is that when the position of one person is determined,
+the number of possible positions for the other person is only $O(n)$ (instead of $O(n^2)$).
+This is because when both people start at the same time, they would have taken the same number of steps, leading to $x_1+y_1=x_2+y_2$.
+
+Therefore, we can use a three-dimensional state array $dp[x_1][y_1][x_2]$ to record number of unique treasures obtained, and calculate $y_2$ state-wisely during transitions.
+Since each state will be computed at most once, the time complexity of this algorithm is $O(n^3)$.
+
+\section{State Transition \& Recurrence Relation}
+For any valid state $(x_1, y_1, x_2, y_2)$, since each person can only move from the left or from below,
+there are four possible preceding states:
+\begin{itemize}
+    \item $(x_1-1, y_1, x_2-1, y_2)$
+    \item $(x_1, y_1-1, x_2-1, y_2)$
+    \item $(x_1-1, y_1, x_2, y_2-1)$
+    \item $(x_1, y_1-1, x_2, y_2-1)$
+\end{itemize}
+Each person moves to the position corresponding to the current state (they might overlap) and collects unique treasures.
+Therefore, the state transition equation can be written as:
+\begin{align*}
+    dp[x_1][y_1][x_2] =& \max ( \\
+    &dp[x_1-1][y_1][x_2-1], \\
+    &dp[x_1][y_1-1][x_2-1], \\
+    &dp[x_1-1][y_1][x_2], \\
+    &dp[x_1][y_1-1][x_2] \\
+    &) + \text{unique treasures collected}
+\end{align*}
+Where the last dimension $y_2$ was compressed.
+Next, one can traverse the states in a temporal order to ensure that when any state is reached, its subproblems have already been visited.
+
+alternatively, one can use a recursive solution, starting from the top-right corner $(n,n,n)$,
+and whenever a state $(x_1,y_1,x_2)$ is accessed, either return $dp[x_1][y_1][x_2]$ (if this state has already been visited) or recursively visit its predecessor states,
+combine the answers, and record the result to $dp[x_1][y_1][x_2]$.
+
+Finally, invalid states should be handled. For iterative solutions, states where (any one person) is at a wall can be skipped during the loop;
+for recursive solutions, recursion can return immediately when an invalid state is accessed.
+
+\section{Boundary Case \& Base Case}
+Boundary conditions and base cases can be simply handled by array initialization:
+\begin{itemize}
+    \item Initialize the $dp$ array to $-\infty$.
+    \item Set $dp[0][0][0] \gets 0$.
+\end{itemize}
+These impossible (but not wall) cases will always be negative during calculation and will not contribute to the final answer.
+One might think that some positions reachable from the bottom-left corner might not be reachable from the top-right corner,
+but it can be proven that these positions will also not contribute to the final answer (because only complete valid paths from bottom-left to top-right will).
+
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}

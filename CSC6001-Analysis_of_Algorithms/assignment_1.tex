@@ -41,8 +41,11 @@
 \checkandfixthelayout
 
 % ===== 页面风格 =====
-\makeevenfoot{plain}{}{\thepage}{}
-\makeoddfoot{plain}{}{\thepage}{}
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
 
 % ===== 章节格式 =====
 \makeatletter
@@ -54,12 +57,28 @@
 \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
 % 重新定义 \printchaptertitle，使其只打印标题文本
 \renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
 \makeatother
 
 \title{\huge\textbf{Analysis of Algorithms - Assignment 1}\vspace{-0.5cm}}
 \author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
 \date{}
 \setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
 
 \begin{document}
 
@@ -77,12 +96,119 @@
 \label{ch:problem1}
 
 \section{Optimized Selection Algorithm}
-\lipsum[1] % 随机文本示例
+The algorithm described below is the \textbf{Median-of-Medians} algorithm, which finds the $k$-th smallest element\
+in an unsorted array of $n$ elements in a recursive style.
+
+Given an array $A$ of $n$ distinct elements and an integer $k$ (where $1 \le k \le n$),\
+the following algorithm returns the $k$-th smallest element in $A$:
+
+\begin{enumerate}
+    \item \textbf{Divide into Groups:} \\
+    Divide the $n$ elements of array $A$ into $\lceil \frac{n}{5} \rceil$ groups. Each group will contain 5 elements,\
+    except possibly the last group, which may contain between 1 and 5 elements.
+
+    \item \textbf{Find Group Medians:} \\
+    For each of the $\lceil \frac{n}{5} \rceil$ groups, sort the elements within the group and find the median.\
+    This can be done with a constant number of comparisons, since each group has at most 5 elements.
+
+    \item \textbf{Find Median-of-Medians (Pivot Selection):} \\
+    Create a new array $M$ consisting of all the medians found in Step 2. The size of $M$ is $\lceil \frac{n}{5} \rceil$.\
+    Recursively apply the algorithm to $M$ to find its \textbf{median}\footnotemark. Let this element be $x$, which will serve as the pivot.
+
+    \footnotetext{It's worth noting that the \textbf{median} here is not necessarily the median of array $A$.}
+
+    \item \textbf{Partition:} \\
+    Partition the original array $A$ into three subarrays based on the pivot $x$:
+    \begin{itemize}
+        \item $L = \{a \in A \mid a < x\}$ (elements strictly less than $x$)
+        \item $E = \{a \in A \mid a = x\}$ (elements equal to $x$)
+        \item $G = \{a \in A \mid a > x\}$ (elements strictly greater than $x$)
+    \end{itemize}
+
+    Let $|L|$, $|E|$, and $|G|$ denote the number of elements in these subarrays, respectively.
+
+    \item \textbf{Recursive Search:} \\
+    Determine which subarray contains the $k$-th smallest element and recursively apply the algorithm to that subarray:
+    \begin{itemize}
+        \item If $k \le |L|$, the $k$-th smallest element is in $L$. Recursively apply the algorithm to find the $k$-th smallest element in $L$.
+        \item If $|L| < k \le |L| + |E|$, the $k$-th smallest element is $x$. Return $x$.
+        \item Otherwise, $k > |L| + |E|$, the $k$-th smallest element is in $G$. Recursively apply the algorithm to find the $(k-|L|-|E|)$-th smallest element in $G$.
+    \end{itemize}
+\end{enumerate}
 
 \section{Recurrence Relation Analysis}
-\lipsum[2] % 随机文本示例
+Let $T(n)$ be the worst-case number of comparisons required by the algorithm described above for an input of size $n$.
+
+\begin{enumerate}
+    \item \textbf{Divide into Groups:} \\
+    This step involves no comparisons, just array manipulation. $O(1)$.
+
+    \item \textbf{Find Group Medians:}
+    \begin{itemize}
+        \item There are $\lceil \frac{n}{5} \rceil$ groups.
+        \item Each group has at most 5 elements. Find median of at most 5 elements requires a constant number of comparisons\footnotemark.
+        \item Thus, finding all group medians requires $O(\lceil \frac{n}{5} \rceil \cdot 1) = O(n)$ comparisons.
+    \end{itemize}
+
+    \footnotetext{It can be proven that using tournament sort, the median of 5 elements can be found in the worst case of 6 comparisons.}
+
+    \item \textbf{Find Median-of-Medians (Pivot Selection):} \\
+    We recursively apply the algorithm to the array $M$ of size $\lceil \frac{n}{5} \rceil$ to find its median\
+    (i.e., the $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$-th smallest element),\
+    which contributes $T(\lceil \frac{n}{5} \rceil)$ to the recurrence.
+
+    \item \textbf{Partition:} \\
+    Partitioning the $n$ elements around based on pivot $x$ takes $O(n)$ comparisons.
+
+    \item \textbf{Recursive Search:}
+    \begin{itemize}
+        \item Consider the pivot $x$. It is the median of the $\lceil \frac{n}{5} \rceil$ group medians.
+        \item At least half of these group medians are less than or equal to $x$.\\
+        That is, at least $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$ elements are $\leq x$.
+        \item Each such group median $m_i$ comes from a group of 5 elements, and at least 3 elements in that group are $\leq m_i$.
+        \item Therefore, at least $3 \cdot \lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil$ elements in the original array $A$ are $\leq x$.
+        \begin{itemize}
+            \item Since $\lceil \frac{n}{x} \rceil \geq \frac{n}{x}$, we have $\lceil \frac{\lceil \frac{n}{5} \rceil}{2} \rceil \geq \frac{n}{10}$
+            \item Thus, as least $\frac{3n}{10}$ elements are $\leq x$.
+            \item Which implies that $|L| + |E| \ge \frac{3n}{10}$.
+        \end{itemize}
+        \item Similarly, at least $\frac{3n}{10}$ elements are $\geq x$. Which implies that $|G| + |E| \ge \frac{3n}{10}$.
+        \item For these bounds, we can deduce the maximum size of the recursive call:
+        \begin{itemize}
+            \item $|L| = |A| - |G| - |E| \leq n - \frac{3n}{10} = \frac{7n}{10}$.
+            \item $|G| = |A| - |L| - |E| \leq n - \frac{3n}{10} = \frac{7n}{10}$.
+            \item Therefore, the maximum size of the recursive call is on a subarray of size at most $\frac{7n}{10}$.\
+            Which contributes $T(\frac{7n}{10})$ to the recurrence.
+        \end{itemize}
+    \end{itemize}
+    Combining all above, we have the recurrence relation for the worst-case comparison number:
+    \begin{align*}
+        T(n) \leq T(\lceil \frac{n}{5} \rceil) + T(\frac{7n}{10}) + O(n)
+    \end{align*}
+    For simplicity, ignoring ceilings, we have:
+    \begin{align*}
+        T(n) \leq T(\frac{n}{5}) + T(\frac{7n}{10}) + O(n)
+    \end{align*}
+\end{enumerate}
 
 \section{Complexity Analysis}
+The complexity of the above \textbf{Median-of-Medians} algorithm can be analyzed using substitution method.
+We can first re-write the recurrence relation as:
+\begin{align*}
+    T(n) \leq T(\frac{n}{5}) + T(\frac{7n}{10}) + cn
+\end{align*}
+for some constant $c > 0$.
+
+Assume that $T(n) \leq dn$ for some constant $d > 0$ and for all $n \leq 1$, we need to find a $d$ such that this assumption holds.
+Substitude $dn$ into the recurrence:
+\begin{align*}
+    T(n) &\leq d\frac{n}{5} + d\frac{7n}{10} + cn \\
+    &= \frac{9dn}{10} + cn \leq dn
+\end{align*}
+Which gives $d \geq 10c$. Thus, we can choose $d = 10c$ to make the assumption holds.
+For base case ($n \leq 5$), since it takes constant time, we can always choose $d$ to be large enough to ensure the solution holds.
+
+To this end, we have proved that the worst-case time complexity of the \textbf{Median-of-Medians} algorithm is $O(n)$.
 
 \chapter{Problem 2: Search in Bitonic Sequence}
 \label{ch:problem2}

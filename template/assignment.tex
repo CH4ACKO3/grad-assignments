@@ -41,8 +41,11 @@
 \checkandfixthelayout
 
 % ===== 页面风格 =====
-\makeevenfoot{plain}{}{\thepage}{}
-\makeoddfoot{plain}{}{\thepage}{}
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
 
 % ===== 章节格式 =====
 \makeatletter
@@ -54,12 +57,28 @@
 \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
 % 重新定义 \printchaptertitle，使其只打印标题文本
 \renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
 \makeatother
 
-\title{\huge\textbf{Assignment Template}\vspace{-0.5cm}}
+\title{\huge\textbf{Analysis of Algorithms - Assignment 1}\vspace{-0.5cm}}
 \author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
 \date{}
 \setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
 
 \begin{document}
 

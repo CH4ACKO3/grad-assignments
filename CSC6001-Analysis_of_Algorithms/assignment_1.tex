@@ -221,7 +221,7 @@ In this additional section, we discuss why the group size is $5$.
 In the previous section, we proved that for a group size of $5$, at most, a subproblem of size $\frac{7n}{10}$ needs to be solved.
 Now, let's assume the group size is $k$.
 This can be rephrased as: among $\lceil \frac{n}{k} \rceil$ medians, $\lceil \frac{\lceil \frac{n}{k} \rceil}{2} \rceil$ are smaller than the pivot.
-where, in each group, $\lfloor \frac{k}{2} \rfloor$ elements are smaller or equal than the pivot. This totals $\lceil \frac{\lceil \frac{n}{k} \rceil}{2} \rceil \lfloor \frac{k}{2} \rfloor \leq \frac{n}{2k} \lfloor \frac{k}{2} \rfloor \approx \frac{n}{4}$\footnotemark,
+where, in each group, $\lceil \frac{k}{2} \rceil$ elements are smaller or equal than the pivot. This totals $\lceil \frac{\lceil \frac{n}{k} \rceil}{2} \rceil \lceil \frac{k}{2} \rceil \geq \frac{n}{4}$\footnotemark,
 meaning the maximum size of the subproblem is $n-\frac{n}{4}=\frac{3n}{4}$.
 In the recurrence relation, we need to handle subproblems $T(\frac{n}{k})$ and $T(\frac{3n}{4})$.
 For this recurrence relation to resolve to $O(n)$, it needs to be ensured that $\frac{n}{k}+\frac{3n}{4} < n$, that is, $k > 4$.

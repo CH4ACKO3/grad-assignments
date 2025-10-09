@@ -1,0 +1,32 @@
+# environment.yml for CSC6022 Machine Learning
+
+name: csc6022_ml_env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.12
+
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - scikit-learn
+
+  - jupyter
+
+  - pip
+  - ipython
+
+  # Uncomment if needed for specific assignments
+  # - pytorch::pytorch
+  # - torchvision
+  # - torchaudio
+  # - cudatoolkit=11.3 # If GPU available, specify CUDA version
+
+  # - pip:
+  #   - some-pypi-package
+
+

@@ -1,0 +1,269 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除"Chapter"字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Machine Learning - Assignment 1}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+\maketitle
+\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+\begin{KeepFromToc} % 将目录本身排除在目录之外
+\tableofcontents
+\end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Problem 1: Multi-output Linear Regression}
+\section{Maximum Likelihood Estimation for W}
+The probabilistic model assumes that for a given input $x_i$, the response vector $y_i$ is drawn from a multivariate normal distribution:
+\[
+\mathbf{y}_i | x_i \sim \mathcal{N}(\mathbf{W}^\top\phi(x_i), \mathbf{\Sigma}) \quad \text{with} \quad \mathbf{\Sigma} = \sigma^2\mathit{I}_2
+\]
+The log-likelihood function for the entire dataset $D = \{(x_i, \mathbf{y}_i)\}_{i=1}^n$ is given by:
+\begin{align*}
+    \mathcal{L}(\mathbf{W}, \mathbf{\Sigma} ; D) &= \log \prod_{i=1}^n P(\mathbf{y}_i | x_i; \mathbf{W}, \mathbf{\Sigma}) \\
+    &= \sum_{i=1}^n \log P(\mathbf{y}_i | x_i; \mathbf{W}, \mathbf{\Sigma}) \\
+    &= \sum_{i=1}^n \log \left[ \left( \frac{1}{(2\pi)^k|\mathbf{\Sigma}|} \right)^{\frac{1}{2}} \exp\left(-\frac{1}{2}(\mathbf{y}_i - \mathbf{W}^\top\phi(x_i))^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{W}^\top\phi(x_i))\right)\right] \\
+    &= \sum_{i=1}^n \left( -\frac{k}{2}\log(2\pi) - \frac{1}{2}\log|\mathbf{\Sigma}| - \frac{1}{2}(\mathbf{y}_i - \mathbf{W}^\top\phi(x_i))^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{W}^\top\phi(x_i)) \right)
+\end{align*}
+To find the maximum likelihood estimate for $\mathbf{W}$, we need to maximize $\mathcal{L}(\mathbf{W}, \mathbf{\Sigma} | D)$ with respect to $\mathbf{W}$.
+This is equivalent to minimizing the negative log-likelihood, and since the terms not involving $\mathbf{W}$ are constant with respect to $\mathbf{W}$,
+this simplifies to only minimizing the sum of the quadratic forms:
+\[
+\hat{\mathbf{W}}_{\text{MLE}} = \arg\min_{\mathbf{W}} \sum_{i=1}^n (\mathbf{y}_i - \mathbf{W}^\top\phi(x_i))^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{W}^\top\phi(x_i))
+\]
+Now let $\mathbf{w}_1$ and $\mathbf{w}_2$ be the first and second columns of $\mathbf{W}$, respectively.
+Due to the one-hot encoding of $\phi(x)$, the predicted mean $\hat{\mathbf{y}}_i = \mathbf{W}^\top\phi(x_i)$ simplifies to:
+\[
+\hat{\mathbf{y}}_i = 
+\begin{cases} 
+    \mathbf{W}^\top\begin{pmatrix} 1 \\ 0 \end{pmatrix} = \mathbf{w}_1 & \text{if } x_i = 0 \\
+    \mathbf{W}^\top\begin{pmatrix} 0 \\ 1 \end{pmatrix} = \mathbf{w}_2 & \text{if } x_i = 1 
+\end{cases}
+\]
+Now let $D_0 = \{\mathbf{y}_i | x_i=0\}$ and $D_1 = \{\mathbf{y}_i | x_i=1\}$.
+The minimization problem decouples into two independent problems for $\mathbf{w}_1$ and $\mathbf{w}_2$:
+\[
+\min_{\mathbf{w}_1} \sum_{\mathbf{y}_i \in D_0} (\mathbf{y}_i - \mathbf{w}_1)^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{w}_1) \quad \text{and} \quad \min_{\mathbf{w}_2} \sum_{\mathbf{y}_i \in D_1} (\mathbf{y}_i - \mathbf{w}_2)^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{w}_2)
+\]
+The solution that minimizes the sum of squared Mahalanobis distances to a set of points is the sample mean of those points. Therefore:
+\[
+\hat{\mathbf{w}}_1 = \frac{1}{|D_0|} \sum_{\mathbf{y}_i \in D_0} \mathbf{y}_i \quad \text{and} \quad \hat{\mathbf{w}}_2 = \frac{1}{|D_1|} \sum_{\mathbf{y}_i \in D_1} \mathbf{y}_i
+\]
+For our data:
+\[
+D_0 = \left\{ \begin{pmatrix} -1 \\ -1 \end{pmatrix}, \begin{pmatrix} -1 \\ -2 \end{pmatrix}, \begin{pmatrix} -2 \\ -1 \end{pmatrix} \right\}, \quad D_1 = \left\{ \begin{pmatrix} 1 \\ 1 \end{pmatrix}, \begin{pmatrix} 1 \\ 2 \end{pmatrix}, \begin{pmatrix} 2 \\ 1 \end{pmatrix} \right\}
+\]
+Calculating the means:
+\[
+\hat{\mathbf{w}}_1 = \frac{1}{3} \begin{pmatrix} -1-1-2 \\ -1-2-1 \end{pmatrix} = \frac{1}{3} \begin{pmatrix} -4 \\ -4 \end{pmatrix} = \begin{pmatrix} -4/3 \\ -4/3 \end{pmatrix}
+\]
+\[
+\hat{\mathbf{w}}_2 = \frac{1}{3} \begin{pmatrix} 1+1+2 \\ 1+2+1 \end{pmatrix} = \frac{1}{3} \begin{pmatrix} 4 \\ 4 \end{pmatrix} = \begin{pmatrix} 4/3 \\ 4/3 \end{pmatrix}
+\]
+The MLE for $\mathbf{W}$ is constructed by combining these column vectors:
+\[
+\hat{\mathbf{W}}_{\text{MLE}} = \begin{pmatrix} | & | \\ \hat{\mathbf{w}}_1 & \hat{\mathbf{w}}_2 \\ | & | \end{pmatrix} = \begin{pmatrix} -4/3 & 4/3 \\ -4/3 & 4/3 \end{pmatrix}
+\]
+
+\section{Ordinary Least Squares Estimation for W}
+The OLS estimator minimizes the residual sum of squares (RSS):
+\[
+\text{RSS}(\mathbf{W} ; D) = \sum_{i=1}^n \| \mathbf{y}_i - \hat{\mathbf{y}}_i \|^2 = \sum_{i=1}^n \| \mathbf{y}_i - \mathbf{W}^\top\phi(x_i) \|^2
+\]
+Using the same decomposition based on the value of $x_i$:
+\begin{align*}
+    \text{RSS}(\mathbf{W} ; D) &= \sum_{\mathbf{y}_i \in D_0} \| \mathbf{y}_i - \mathbf{w}_1 \|^2 + \sum_{\mathbf{y}_i \in D_1} \| \mathbf{y}_i - \mathbf{w}_2 \|^2
+\end{align*}
+This objective function also decouples. To minimize the total sum, we can minimize each part independently. The vector $\mathbf{w}_1$ that minimizes the sum of squared Euclidean distances to the points in $D_0$ is the sample mean of $D_0$. Similarly, the optimal $\mathbf{w}_2$ is the sample mean of $D_1$.
+\[
+\hat{\mathbf{w}}_1 = \frac{1}{|D_0|} \sum_{\mathbf{y}_i \in D_0} \mathbf{y}_i = \begin{pmatrix} -4/3 \\ -4/3 \end{pmatrix}
+\]
+\[
+\hat{\mathbf{w}}_2 = \frac{1}{|D_1|} \sum_{\mathbf{y}_i \in D_1} \mathbf{y}_i = \begin{pmatrix} 4/3 \\ 4/3 \end{pmatrix}
+\]
+Thus, the OLS estimate for $\mathbf{W}$ is:
+\[
+\hat{\mathbf{W}}_{\text{OLS}} = \begin{pmatrix} | & | \\ \hat{\mathbf{w}}_1 & \hat{\mathbf{w}}_2 \\ | & | \end{pmatrix} = \begin{pmatrix} -4/3 & 4/3 \\ -4/3 & 4/3 \end{pmatrix} = \hat{\mathbf{W}}_{\text{MLE}}
+\]
+
+According to the calculation results, the maximum likelihood estimator and the ordinary least squares estimator for the weight matrix $\mathbf{W}$ are the same in this problem. In fact, $\hat{\mathbf{W}}_{\text{MLE}} \equiv \hat{\mathbf{W}}_{\text{OLS}}$.
+
+\chapter{Problem 2: Linear Regression — MLE, MAP, and Bayesian Inference}
+\section{Maximum Likelihood Estimation}
+The likelihood of a single data point $y_i$ given $x_i$ and $a$ is:
+\[
+p(y_i | x_i; a, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(y_i - ax_i)^2}{2\sigma^2} \right)
+\]
+Since the data points are independent, the likelihood of all data points is the product of individual likelihoods:
+\[
+L(a) = p(y_1, \dots, y_n | x_1, \dots, x_n; a, \sigma^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(y_i - ax_i)^2}{2\sigma^2} \right)
+\]
+To find the MLE for $a$, we minimize the negative log-likelihood function $\log L(a)$:
+\[
+\text{NLL}(a) = -\log L(a) = \sum_{i=1}^n \left[ \frac{1}{2} \log(2\pi\sigma^2) + \frac{(y_i - ax_i)^2}{2\sigma^2} \right]
+\]
+To find the value of $a$ that minimizes $\text{NLL}(a)$, we take the derivative with respect to $a$ and set it to $0$:
+\[
+\frac{\partial \text{NLL}(a)}{\partial a} = \sum_{i=1}^n \frac{\partial}{\partial a} \left[ \frac{1}{2} \log(2\pi\sigma^2) + \frac{1}{2\sigma^2} (y_i - ax_i)^2 \right] = 0
+\]
+The first term is constant with respect to $a$, so its derivative is $0$. For the second term, we use the chain rule:
+\[
+\frac{\partial}{\partial a} \left( -\frac{1}{2\sigma^2} (y_i - ax_i)^2 \right) = -\frac{1}{2\sigma^2} \cdot 2(y_i - ax_i) \cdot (-x_i) = \frac{1}{\sigma^2} (y_i - ax_i)x_i
+\]
+Summing over all $i$:
+\begin{align*}
+\frac{\partial \log L(a)}{\partial a} = \sum_{i=1}^n \frac{1}{\sigma^2} (y_i x_i - ax_i^2) &= 0 \\
+\sum_{i=1}^n (y_i x_i - ax_i^2) &= 0 \\
+\sum_{i=1}^n y_i x_i - a \sum_{i=1}^n x_i^2 &= 0
+\end{align*}
+Solving for $a$:
+\[
+\hat{a}_{MLE} = \frac{\sum_{i=1}^n x_i y_i}{\sum_{i=1}^n x_i^2}
+\]
+
+\section{Maximum A Posteriori Estimation}
+For MAP case, we want to find:
+\[
+\hat{a}_{MAP} = \arg \max_a \left[ \log p(y_1, \dots, y_n | x_1, \dots, x_n, a, \sigma^2) + \log p(a | \lambda) \right]
+\]
+First, the log-likelihood with $\sigma=1$:
+\[
+\left. \log p(y | x, a, \sigma^2) \right|_{\sigma=1} = \sum_{i=1}^n \left[ -\frac{1}{2} \log(2\pi) - \frac{1}{2} (y_i - ax_i)^2 \right]
+\]
+Next, the prior distribution for $a$:
+\[
+p(a | \lambda) = \frac{1}{\sqrt{2\pi\lambda^2}} \exp\left( -\frac{a^2}{2\lambda^2} \right)
+\]
+The log-prior function:
+\[
+\log p(a | \lambda) = -\frac{1}{2} \log(2\pi\lambda^2) - \frac{a^2}{2\lambda^2} = -\frac{1}{2} \log(2\pi) - \log(\lambda) - \frac{a^2}{2\lambda^2}
+\]
+Now, we combine the log-likelihood and log-prior to form the function $f(a)$ to be maximized (or minimize the negative, whatever):
+\[
+f(a) = \log p(y | x, a, \sigma^2) + \log p(a | \lambda)
+\]
+To find $\hat{a}_{MAP}$, we take the derivative of $f(a)$ with respect to $a$ and set it to zero:
+\begin{align*}
+\frac{\partial f(a)}{\partial a} &= \frac{\partial}{\partial a} \left( \sum_{i=1}^n \left[ -\frac{1}{2} \log(2\pi) - \frac{1}{2} (y_i - ax_i)^2 \right] \right) + \frac{\partial}{\partial a} \left( -\frac{1}{2} \log(2\pi) - \log(\lambda) - \frac{a^2}{2\lambda^2} \right) \\
+&= \sum_{i=1}^n (y_i x_i - ax_i^2) - \frac{a}{\lambda^2} = 0
+\end{align*}
+Solving for $a$:
+\[
+\hat{a}_{MAP} = \frac{\sum_{i=1}^n x_i y_i}{\sum_{i=1}^n x_i^2 + \frac{1}{\lambda^2}}
+\]
+
+\section{Qualitative Comparison}
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{|p{0.2\textwidth}|p{0.2\textwidth}|p{0.2\textwidth}|p{0.2\textwidth}|}
+    \hline
+    \textbf{Condition} & \textbf{$p(a | \lambda)$} & \textbf{$p(Y | X, a)$} & \textbf{$|\hat{a}_{MLE} - \hat{a}_{MAP}|$} \\
+    \hline
+    $\lambda \rightarrow \infty$ & wider & same & decrease \\
+    $\lambda \rightarrow 0$ & narrower & same & increase \\
+    $n \rightarrow \infty$ (fixed $\lambda$) & same & narrower & decrease \\
+    \hline
+  \end{tabular}
+\end{table}
+\begin{itemize}
+    \item \textbf{As $\lambda \rightarrow \infty$:}
+    The prior $p(a | \lambda) \sim \mathcal{N}(0, \lambda^2)$ becomes infinitely wide, indicating a very weak prior belief.
+    The likelihood remains unchanged as it does not depend on $\lambda$.
+    As $\frac{1}{\lambda^2} \rightarrow 0$, $\hat{a}_{MAP}$ approaches $\hat{a}_{MLE}$, so the distance between them decreases.
+    \item \textbf{As $\lambda \rightarrow 0$:}
+    The prior $p(a | \lambda) \sim \mathcal{N}(0, \lambda^2)$ becomes infinitely narrow, concentrating all probability mass at $a=0$.
+    The likelihood remains unchanged. As $\frac{1}{\lambda^2} \rightarrow \infty$,
+    the denominator of $\hat{a}_{MAP}$ becomes very large, forcing $\hat{a}_{MAP} \rightarrow 0$.
+    Since $\hat{a}_{MLE}$ is generally not zero, the distance between them increases.
+    \item \textbf{As $n \rightarrow \infty$ (fixed $\lambda$):}
+    The prior $p(a | \lambda)$ depends only on $\lambda$, so it remains unchanged.
+    With more data, the likelihood function becomes more concentrated (narrower) around the true parameter value, as the data provides more information.
+    As $n \rightarrow \infty$, $\sum_{i=1}^n x_i^2$ typically grows large, making $\frac{1}{\lambda^2}$ negligible compared to $\sum_{i=1}^n X_i^2$.
+    Thus, $\hat{a}_{MAP}$ approaches $\hat{a}_{MLE}$, and the distance between them decreases. This illustrates that with sufficient data,
+    the likelihood dominates the prior in Bayesian inference.
+\end{itemize}
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}
+

@@ -1,0 +1,11 @@
+name: hw1
+dependencies:
+  - python=3.9
+  - ipykernel
+  - scikit-learn=1.6.1
+  - numpy=1.26.4
+  - pandas=1.5.3
+  - matplotlib
+  - seaborn=0.13.2
+  - altair=5.5.0
+  - sympy

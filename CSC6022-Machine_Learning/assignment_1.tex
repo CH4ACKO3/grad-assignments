@@ -3,6 +3,7 @@
 % 数学公式包
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{mathtools}
+\usepackage{yhmath}
 
 % 算法包
 \usepackage{algorithm}
@@ -218,7 +219,7 @@ Solving for $a$:
 \chapter{Problem 3: Solving LASSO}
 \section{Derivation of Equivalence}
 The MAP estimator for $\beta$ is defined as:
-\[ \hat{\beta}_{\text{MAP}}  = \arg \max_{\beta} \left[ p(Y | X, \beta) + p(\beta | \lambda) \right] \]
+\[ \hat{\beta}_{\text{MAP}}  = \arg \max_{\beta} \left[ p(Y | X, \beta) p(\beta | \lambda) \right] \]
 Which is equivalent to minimizing the negative log-likelihood and prior:
 \[ \hat{\beta}_{\text{MAP}} = \arg \min_{\beta} \left[ -\log p(Y | X, \beta) - \log p(\beta | \lambda) \right] \]
 In which:
@@ -691,6 +692,95 @@ which requires $O(d^3)$ operations. Thus, in terms of wall-clock time, Newton's 
 The latter requires computing the Fisher information matrix (the Hessian matrix of KL divergence) each step,
 while the former is a simplified version that only needs a constrained gradient information (first-order).
 Experiments have shown that the former converges faster than the latter on various tasks.}
+
+\chapter{Problem 9: Computing the Posterior Predictive}
+Let's first review the core of Bayesian Posterior Predictive: first updating our beliefs about parameters $\theta$ after observing data $\mathcal{D}$.
+This is governed by Bayes' theorem:
+\[ p(\theta | \mathcal{D}) = \frac{p(\mathcal{D} | \theta) p(\theta)}{p(\mathcal{D})} \propto p(\mathcal{D} | \theta) p(\theta) \]
+where $p(\theta)$ is the prior, $p(\mathcal{D} | \theta)$ is the likelihood, and $p(\theta | \mathcal{D})$ is the posterior.
+For prediction on a new data point $x_*$, we compute the posterior predictive distribution by marginalizing over the posterior of the parameters:
+\[ p(y_* | x_*, \mathcal{D}) = \int p(y_* | x_*, \theta) p(\theta | \mathcal{D}) d\theta \]
+
+
+For our model $y = \boldsymbol{w}^\top \phi(x) + \epsilon$, we have:
+\begin{itemize}
+    \item \textbf{Prior}: A Gaussian prior on the weights $\boldsymbol{w}$:
+    \[ p(\boldsymbol{w}) = \mathcal{N}(\boldsymbol{w} | \breve{\boldsymbol{w}}, \breve{\boldsymbol{\Sigma}}) = \mathcal{N}(\boldsymbol{w} | \boldsymbol{0}, \tau^2 \boldsymbol{I}) \]
+    where $\breve{\boldsymbol{w}}$ is the prior mean and $\breve{\boldsymbol{\Sigma}}$ is the prior covariance matrix.
+
+    \item \textbf{Likelihood}: A Gaussian likelihood for the observed data $\mathcal{D}$:
+    \[ p(\mathcal{D} | \boldsymbol{w}, \sigma^2) = \prod_{n=1}^N p(y_n | x_n, \boldsymbol{w}, \sigma^2) = \prod_{n=1}^N \mathcal{N}(y_n | \boldsymbol{w}^\top \phi(x_n), \sigma^2) = \mathcal{N}(\boldsymbol{y} | \boldsymbol{w}^\top \phi(\boldsymbol{x}), \sigma^2 \boldsymbol{I}_N) \]
+    where $\boldsymbol{I}_N$ is the $N \times N$ identity matrix. We can then use Bayes rule to derive the posterior:
+    \begin{align*}
+      p(\boldsymbol{w} | \mathcal{D}, \sigma^2) &\propto p(\mathcal{D} | \boldsymbol{w}, \sigma^2) p(\boldsymbol{w}) \\
+      &= \mathcal{N}(\boldsymbol{y} | \boldsymbol{w}^\top \phi(\boldsymbol{x}), \sigma^2 \boldsymbol{I}_N) \mathcal{N}(\boldsymbol{w} | \breve{\boldsymbol{w}}, \breve{\boldsymbol{\Sigma}}) \\
+      &= \mathcal{N}(\boldsymbol{w} | \wideparen{\boldsymbol{w}}, \wideparen{\boldsymbol{\Sigma}})
+    \end{align*}
+    where
+    \begin{align*}
+      \wideparen{\boldsymbol{w}} &= \wideparen{\boldsymbol{\Sigma}} (\breve{\boldsymbol{\Sigma}}^{-1} \breve{\boldsymbol{w}} + \frac{1}{\sigma^2} \phi(\boldsymbol{x})^\top \boldsymbol{y}) \\
+      \wideparen{\boldsymbol{\Sigma}} &= (\breve{\boldsymbol{\Sigma}}^{-1} + \frac{1}{\sigma^2} \phi(\boldsymbol{x})^\top \phi(\boldsymbol{x}))^{-1}
+    \end{align*}
+    are the posterior mean and covariance matrix, respectively.
+\end{itemize}
+
+Thus, the posterior predictive distribution is:
+\begin{align*}
+  p(y_* | x_*, \mathcal{D}) &= \int p(y_* | x_*, \boldsymbol{w}, \sigma^2) p(\boldsymbol{w} | \mathcal{D}) d\boldsymbol{w} \\
+  &= \int \mathcal{N}(y_* | \boldsymbol{w}^\top \phi(x_*), \sigma^2) \mathcal{N}(\boldsymbol{w} | \wideparen{\boldsymbol{w}}, \wideparen{\boldsymbol{\Sigma}}) d\boldsymbol{w} \\
+  &= \mathcal{N}(y_* | \wideparen{\boldsymbol{w}}^\top \phi(x_*), \wideparen{\sigma}^2)
+\end{align*}
+where $\wideparen{\sigma}^2 = \sigma^2 + \phi(x_*)^\top \wideparen{\boldsymbol{\Sigma}} \phi(x_*)$.
+
+\newpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{code/result/problem9.pdf}
+  \caption{(a) Plugin approximation to predictive density (we plug in the MLE of the parameters) when fitting a second degree polynomial to some 1d data.
+  (b) Posterior predictive density, obtained by integrating out the parameters. Black curve is posterior mean, error bars are 2 standard deviations of the posterior predictive density.
+  (c) sample from the plugin approximation to posterior predictive distribution.
+  (d) 10 samples from the true posterior predictive distribution. With heavy color is the plugin one.}
+  \label{fig:problem9}
+\end{figure}
+
+\chapter{Programming I}
+\section{Greedy}
+\begin{align*}
+  \mathcal{A}^{(6)} &= \{1, 2, 3, 4, 8, 10\} \\
+  \beta^{(6)} &= \begin{pmatrix}
+    5.10084 \\
+    13.2019937 \\
+    -9.09464524 \\
+    9.34579237 \\
+    12.18458507 \\
+    0. \\
+    0. \\
+    0. \\
+    12.65362554 \\
+    0. \\
+    -7.42805947
+  \end{pmatrix}
+\end{align*}
+
+\section{Ridge}
+\begin{align*}
+  \lambda^* &= 0.0125 \\
+  \beta^* &= \begin{pmatrix}
+    5.10084 \\
+    13.15618925 \\
+    -9.32951139 \\
+    9.00778597 \\
+    12.38224078 \\
+    5.02341763 \\
+    -3.28072049 \\
+    -4.02556128 \\
+    12.82172388 \\
+    -4.93322552 \\
+    -7.34490684
+  \end{pmatrix} \\
+  \|y_{\text{true}} - y_{\text{pred}}\|_2^2 &= 35.8893064587282 \\
+  \|\hat{\beta}^{\text{Ridge}} - \beta^*\|_2^2 &= 24.016307771599163
+\end{align*}
 % 标记最后一页用于总页数计算
 \label{LastPage}
 \end{document}

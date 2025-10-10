@@ -119,7 +119,7 @@ Due to the one-hot encoding of $\phi(x)$, the predicted mean $\hat{\mathbf{y}}_i
 Now let $D_0 = \{\mathbf{y}_i | x_i=0\}$ and $D_1 = \{\mathbf{y}_i | x_i=1\}$.
 The minimization problem decouples into two independent problems for $\mathbf{w}_1$ and $\mathbf{w}_2$:
 \[ \min_{\mathbf{w}_1} \sum_{\mathbf{y}_i \in D_0} (\mathbf{y}_i - \mathbf{w}_1)^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{w}_1) \quad \text{and} \quad \min_{\mathbf{w}_2} \sum_{\mathbf{y}_i \in D_1} (\mathbf{y}_i - \mathbf{w}_2)^\top\mathbf{\Sigma}^{-1}(\mathbf{y}_i - \mathbf{w}_2) \]
-The solution that minimizes the sum of squared Mahalanobis distances to a set of points is the sample mean of those points. Therefore:
+The solution that minimizes the sum of squared Mahalanobis distances to a set of points is the sample mean of those points. Thus:
 \[ \hat{\mathbf{w}}_1 = \frac{1}{|D_0|} \sum_{\mathbf{y}_i \in D_0} \mathbf{y}_i \quad \text{and} \quad \hat{\mathbf{w}}_2 = \frac{1}{|D_1|} \sum_{\mathbf{y}_i \in D_1} \mathbf{y}_i \]
 For our data:
 \[ D_0 = \left\{ \begin{pmatrix} -1 \\ -1 \end{pmatrix}, \begin{pmatrix} -1 \\ -2 \end{pmatrix}, \begin{pmatrix} -2 \\ -1 \end{pmatrix} \right\}, \quad D_1 = \left\{ \begin{pmatrix} 1 \\ 1 \end{pmatrix}, \begin{pmatrix} 1 \\ 2 \end{pmatrix}, \begin{pmatrix} 2 \\ 1 \end{pmatrix} \right\} \]
@@ -330,7 +330,7 @@ the partial derivative of $CDF_{|\beta_j|}(z | \lambda)$ with respect to $\lambd
 Which indicates that as $\lambda$ increases, the probability that $|\beta_j|$ falls within a small interval $[0, z]$ (i.e., close to zero) increases.
 This implies that the probability mass of $|\beta_j|$ is shifted towards zero, making the distribution of $|\beta_j|$ more concentrated around zero.
 
-Therefore, a larger $\lambda$ imposes a stronger prior belief that the coefficients $\beta_j$ should be close to zero,
+Thus, a larger $\lambda$ imposes a stronger prior belief that the coefficients $\beta_j$ should be close to zero,
 thus leading to a more \textbf{sparse} solution in case of soft-thresholding.
 
 From a slightly more emotional perspective, a larger $\lambda$ would make it easier for $B$ to fall within $|B|<\lambda$ (case 3),
@@ -347,7 +347,7 @@ Let's first derive the functional form of $\hat{w}_k$ for each estimation method
       For the $k$-th coefficient\footnotemark :
       \[ \hat{w}_{\text{OLS},k} = (X^T y)_k = \mathbf{x}_k^T y \] 
       Since $c_k = 2 y^T \mathbf{x}_k$, we have $\mathbf{x}_k^T y = c_k / 2$.
-      Therefore, the OLS estimator for the $k$-th coefficient is:
+      Thus, the OLS estimator for the $k$-th coefficient is:
       \[ \hat{w}_{\text{OLS},k} = \frac{c_k}{2} \]
       This is a linear function of $c_k$ passing through the origin with a slope of $1/2$.
       \footnotetext{For the sake of simplicity and a easier life, here we use a slightly different notation from the original problem:
@@ -408,9 +408,111 @@ when $c_k = 2$, $\hat{w}_k = 0.5$. Substituting these values into the Ridge form
 
 From the LASSO functional form, $\hat{w}_{\text{LASSO},k} = 0$ when $|c_k| \le \lambda_1$.
 Observing Curve (3) (LASSO), the estimated coefficient $\hat{w}_k$ is zero for $c_k$ values between $-1$ and $1$.
-Therefore, the threshold for non-zero coefficients is $\lambda_1 = 1$.
+Thus, the threshold for non-zero coefficients is $\lambda_1 = 1$.
 
 \chapter{Problem 5: Naive Bayes Classifier and MLE}
+\section{Model Assumptions}
+The density $p(x | y = k)$ can factorize as $\prod_{j=1}^{d} N(x_j | \mu_{k,j}, \sigma^2_{k,j})$ due to the Naive Bayes assumption of conditional independence.
+Which states that, given the class $y=k$, the features $x_1, \dots, x_d$ are conditionally independent.
+Thus, the joint probability of the features given the class can be written as the product of the individual feature probabilities given the class:
+\[ p(x | y = k) = p(x_1, \dots, x_d | y = k) = \prod_{j=1}^{d} p(x_j | y = k) = \prod_{j=1}^{d} N(x_j | \mu_{k,j}, \sigma^2_{k,j}) \]
+
+\section{MLE Derivation}
+Now let $\Theta = \{\pi_k, \mu_{k,j}, \sigma^2_{k,j}\}$ be the set of all model parameters.
+The likelihood for all $N$ i.i.d. samples is given by:
+\begin{align*}
+  L(\Theta) = \prod_{i=1}^{N} p(x_i, y_i | \Theta) &= \prod_{i=1}^{N} p(x_i | y_i, \Theta) P(y_i | \Theta) \\
+  &= \prod_{i=1}^{N} \left( \pi_{y_i} \prod_{j=1}^{d} N(x_{i,j} | \mu_{y_i,j}, \sigma^2_{y_i,j}) \right) \\
+  &= \left( \prod_{i=1}^{N} \pi_{y_i} \right) \left( \prod_{i=1}^{N} \prod_{j=1}^{d} N(x_{i,j} | \mu_{y_i,j}, \sigma^2_{y_i,j}) \right)
+\end{align*}
+Thus, the log-likelihood is given by:
+\begin{align*}
+  \log L(\Theta) &= \sum_{i=1}^{N} \log \pi_{y_i} + \sum_{i=1}^{N} \sum_{j=1}^{d} \log N(x_{i,j} | \mu_{y_i,j}, \sigma^2_{y_i,j}) \\
+  &= \sum_{i=1}^{N} \log \pi_{y_i} + \sum_{i=1}^{N} \sum_{j=1}^{d} \left( -\frac{1}{2} \log(2\pi) - \frac{1}{2} \log(\sigma^2_{y_i,j}) - \frac{(x_{i,j} - \mu_{y_i,j})^2}{2\sigma^2_{y_i,j}} \right)
+\end{align*}
+To derive $\pi_k$, we need to maximize $\log L(\Theta)$ with respect to $\pi_k$ subject to the constraint $\sum_{k=1}^{K} \pi_k = 1$.
+We use a Lagrange multiplier $\lambda$:
+\begin{align*}
+  L'(\Theta, \lambda) &= \sum_{i=1}^{N} \log \pi_{y_i} + \lambda \left( \sum_{k=1}^{K} \pi_k - 1 \right) \\
+  &= \sum_{k=1}^{K} N_k \log \pi_k + \lambda \left( \sum_{k=1}^{K} \pi_k - 1 \right)
+\end{align*}
+Where $N_k$ is the number of samples belong to class $k$.
+Taking the derivative with respect to $\pi_k$ and setting it to zero:
+\[ \frac{\partial L'}{\partial \pi_k} = \frac{N_k}{\pi_k} + \lambda = 0 \implies \pi_k = -\frac{N_k}{\lambda} \]
+and,
+\[ \frac{\partial L'}{\partial \lambda} = \sum_{k=1}^{K} \pi_k - 1 = -\frac{\sum_{k=1}^{K} N_k}{\lambda} - 1 = 0 \implies \lambda = -\sum_{k=1}^{K} N_k = -N \]
+Thus,
+\[ \pi_k = \frac{N_k}{N} \]
+
+To derive $\mu_{k,j}$ and $\sigma^2_{k,j}$, we first need to select the terms depending on which from $\log L(\Theta)$, that is:
+\[ \sum_{y_i=k} \left( -\frac{1}{2} \log(\sigma^2_{k,j}) - \frac{(x_{i,j} - \mu_{k,j})^2}{2\sigma^2_{k,j}} \right) \]
+Take the derivative with respect to $\mu_{k,j}$ and set it to zero:
+\begin{align*}
+  \frac{\partial \log L}{\partial \mu_{k,j}} = \sum_{y_i=k} \left( - \frac{1}{2\sigma^2_{k,j}} \cdot 2(x_{i,j} - \mu_{k,j}) \cdot (-1) \right)
+  = \sum_{y_i=k} \frac{x_{i,j} - \mu_{k,j}}{\sigma^2_{k,j}} &= 0 \\
+  \sum_{y_i=k} x_{i,j} - N_k \mu_{k,j} &= 0 \\
+  \implies \hat{\mu_{k,j}} &= \frac{1}{N_k} \sum_{y_i=k} x_{i,j}
+\end{align*}
+Do the same thing for $\sigma^2_{k,j}$:
+\begin{align*}
+  \frac{\partial \log L}{\partial \sigma^2_{k,j}} = \sum_{y_i=k} \left( -\frac{1}{2\sigma^2_{k,j}} + \frac{(x_{i,j} - \mu_{k,j})^2}{2(\sigma^2_{k,j})^2} \right) &= 0 \\
+  \sum_{y_i=k} \left( -\sigma^2_{k,j} + (x_{i,j} - \mu_{k,j})^2 \right) &= 0 \quad \text{(Multiply by } 2(\sigma^2_{k,j})^2 \text{)} \\
+  -N_k \sigma^2_{k,j} + \sum_{y_i=k} (x_{i,j} - \mu_{k,j})^2 &= 0 \\
+  \implies \hat{\sigma}^2_{k,j} &= \frac{1}{N_k} \sum_{y_i=k} (x_{i,j} - \hat{\mu}_{k,j})^2
+\end{align*}
+
+\section{Modified Assumption — Shared Variances}
+The likelihood changes as follows:
+\[ L(\Theta) = \prod_{i=1}^{N} \left( \pi_{y_i} \prod_{j=1}^{d} N(x_{i,j} | \mu_{y_i,j}, \sigma^2_{j}) \right) \]
+The log-likelihood thus becomes:
+\[ \log L(\Theta) = \sum_{i=1}^{N} \log \pi_{y_i} + \sum_{i=1}^{N} \sum_{j=1}^{d} \left( -\frac{1}{2} \log(2\pi) - \frac{1}{2} \log(\sigma^2_{j}) - \frac{(x_{i,j} - \mu_{y_i,j})^2}{2\sigma^2_{j}} \right) \]
+The only difference is that $\sigma^2_j$ no longer has a subscript $k$ (or, $y_i$).
+
+Since the terms involving $\pi_k$ are independent of the variance assumption, the MLE for $\pi_k$ remains unchanged:
+\[ \hat{\pi}_k = \frac{N_k}{N} \]
+The $\mu_{k,j}$ also remains unchanged:
+\[ \hat{\mu}_{k,j} = \frac{1}{N_k} \sum_{y_i=k} x_{i,j} \]
+The only difference is the $\sigma^2_j$.
+Now, $\sigma^2_j$ is shared across all classes. The terms in $\log L(\Theta)$ that depend on $\sigma^2_j$ are:
+\[ \sum_{i=1}^{N} \left( -\frac{1}{2} \log(\sigma^2_{j}) - \frac{(x_{i,j} - \mu_{y_i,j})^2}{2\sigma^2_{j}} \right) \]
+Which can be re-write by grouping terms by class:
+\begin{align*}
+\sum_{k=1}^{K} \sum_{y_i=k} \left( -\frac{1}{2} \log(\sigma^2_{j}) - \frac{(x_{i,j} - \mu_{k,j})^2}{2\sigma^2_{j}} \right) &=
+\sum_{k=1}^{K} \left( N_k \left(-\frac{1}{2} \log(\sigma^2_{j})\right) - \sum_{y_i=k} \frac{(x_{i,j} - \mu_{k,j})^2}{2\sigma^2_{j}} \right) \\
+&= -\frac{N}{2} \log(\sigma^2_{j}) - \sum_{k=1}^{K} \sum_{y_i=k} \frac{(x_{i,j} - \mu_{k,j})^2}{2\sigma^2_{j}}
+\end{align*}
+Thus the derivative becomes:
+\begin{align*}
+  \frac{\partial \log L}{\partial \sigma^2_j} &= -\frac{N}{2\sigma^2_j} + \sum_{k=1}^{K} \sum_{y_i=k} \frac{(x_{i,j} - \mu_{k,j})^2}{2(\sigma^2_j)^2} = 0 \\
+  \implies \hat{\sigma}^2_j &= \frac{1}{N} \sum_{k=1}^{K} \sum_{y_i=k} (x_{i,j} - \hat{\mu}_{k,j})^2 = \frac{1}{N} \sum_{i=1}^{N} (x_{i,j} - \hat{\mu}_{y_i,j})^2
+\end{align*}
+
+\section{Decision Boundary}
+The decision boundary between two classes, let's say, class $k$ and class $l$, is determined by the points $x$ where $P(y=k|x) = P(y=l|x)$.
+This is equivalent to $\log P(y=k|x) = \log P(y=l|x)$, or $\log \frac{P(y=k|x)}{P(y=l|x)} = 0$.
+
+Using Bayes' theorem $P(y=k|x) = \frac{p(x|y=k)P(y=k)}{p(x)}$, the decision boundary is given by:
+\begin{align*}  
+  \log P(y=k) + \log p(x|y=k) &= \log P(y=l) + \log p(x|y=l) \\
+  \log \pi_k + \sum_{j=1}^{d} \log N(x_j | \mu_{k,j}, \sigma^2_{k,j}) &= \log \pi_l + \sum_{j=1}^{d} \log N(x_j | \mu_{l,j}, \sigma^2_{l,j}) \\
+  \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \left( -\frac{1}{2} \log(\sigma^2_{k,j}) - \frac{(x_j - \mu_{k,j})^2}{2\sigma^2_{k,j}} \right)
+  &= \sum_{j=1}^{d} \left( -\frac{1}{2} \log(\sigma^2_{l,j}) - \frac{(x_j - \mu_{l,j})^2}{2\sigma^2_{l,j}} \right)
+\end{align*}
+That is,
+\[ \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \left( \frac{1}{2} \log \frac{\sigma^2_{l,j}}{\sigma^2_{k,j}} - \frac{(x_j - \mu_{k,j})^2}{2\sigma^2_{k,j}} + \frac{(x_j - \mu_{l,j})^2}{2\sigma^2_{l,j}} \right) = 0 \]
+Which indicates that the decision boundary will be a quadratic function of $x$,
+means that the boundaries are generally curved, e.g., ellipse, hyperbola, etc.
+
+For \textbf{shared variances}, the equation becomes:
+\begin{align*}
+  \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \left( \frac{1}{2} \log \frac{\sigma^2_{l,j}}{\sigma^2_{k,j}} - \frac{(x_j - \mu_{k,j})^2}{2\sigma^2_{k,j}} + \frac{(x_j - \mu_{l,j})^2}{2\sigma^2_{l,j}} \right) &= 0 \\
+  \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \left( -\frac{(x_j - \mu_{k,j})^2}{2\sigma^2_{j}} + \frac{(x_j - \mu_{l,j})^2}{2\sigma^2_{j}} \right) &= 0 \\
+  \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \frac{1}{2\sigma^2_{j}} \left( -(x_j^2 - 2x_j\mu_{k,j} + \mu_{k,j}^2) + (x_j^2 - 2x_j\mu_{l,j} + \mu_{l,j}^2) \right) &= 0 \\
+  \log \frac{\pi_k}{\pi_l} + \sum_{j=1}^{d} \frac{1}{2\sigma^2_{j}} \left( 2x_j(\mu_{k,j} - \mu_{l,j}) + (\mu_{l,j}^2 - \mu_{k,j}^2) \right) &= 0
+\end{align*}
+Which indicates that the decision boundary will be a linear function of $x$,
+means the boundaries becomes hyperplanes.
+
 % 标记最后一页用于总页数计算
 \label{LastPage}
 \end{document}

@@ -513,6 +513,184 @@ For \textbf{shared variances}, the equation becomes:
 Which indicates that the decision boundary will be a linear function of $x$,
 means the boundaries becomes hyperplanes.
 
+\chapter{Problem 6: Logistic Regression}
+\section{Base Case}
+For a linearly separable dataset, as shown in the figure,
+the maximum likelihood estimation for logistic regression will find a decision boundary that perfectly separates the two classes.
+The decision boundary is a line defined by $w_0 + w_1x_1 + w_2x_2 = 0$, as shown below:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{code/result/problem6_1.pdf}
+  \caption{Base Case}
+  \label{fig:problem6_1}
+\end{figure}
+
+\textbf{Is the decision boundary unique?} No, the decision boundary is not unique. For linearly separable data,
+there exists an infinite number of lines that can perfectly separate the two classes.
+Any line within the margin between the two closest points of the opposite classes will achieve zero error on the training set.
+In Figure \ref{fig:problem6_1}, all orange solid and dashed lines represent a feasible solution.
+
+\textbf{How many classification errors?} The method makes \textbf{0} classification errors in this case, as the data is linearly separable.
+
+\section[Regularize w0 heavily]{Regularize $w_0$ heavily}
+When heavily regularize $w_0$ by minimizing $J_0(\mathbf{w}) = -\ell(\mathbf{w}, \mathcal{D}_{\text{train}}) + \lambda w_0^2$ with a very large $\lambda$,
+the optimization forces $w_0 \approx 0$. The decision boundary equation $w_0 + w_1x_1 + w_2x_2 = 0$ simplifies to:
+\[ w_1x_1 + w_2x_2 = 0 \]
+This is the equation of a line that must pass through the origin $(0,0)$.
+The model will find the best-fitting line through the origin to separate the classes, as shown below:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{code/result/problem6_2.pdf}
+  \caption{Regularize $w_0$ heavily, with a decision boundary passing through the origin.}
+  \label{fig:problem6_2}
+\end{figure}
+
+\textbf{How many classification errors?} In this case, it is possible to perfectly divide the classes
+with a line passing through the origin, so the classification error will be $\textbf{0}$, as shown in the Figure \ref{fig:problem6_2}.
+
+\section[Regularize w1 heavily]{Regularize $w_1$ heavily}
+When we heavily regularize $w_1$, the optimization forces $w_1 \approx 0$. The decision boundary equation becomes:
+\[ w_0 + w_2x_2 = 0 \quad \implies \quad x_2 = -\frac{w_0}{w_2} \]
+This is the equation of a horizontal line. The model will find the best horizontal line that separates the two classes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{code/result/problem6_3.pdf}
+  \caption{Regularize $w_1$ heavily, with a decision boundary being a horizontal line.}
+  \label{fig:problem6_3}
+\end{figure}
+
+\textbf{How many classification errors?} In this case, it's impossible to perfectly separate the classes with a horizontal line;
+the optimal classification error will be $\textbf{2}$, as Figure \ref{fig:problem6_3}.
+
+\section[Regularize w2 heavily]{Regularize $w_2$ heavily}
+When we heavily regularize $w_2$, the optimization forces $w_2 \approx 0$. The decision boundary equation becomes:
+\[ w_0 + w_1x_1 = 0 \quad \implies \quad x_1 = -\frac{w_0}{w_1} \]
+This is the equation of a vertical line. The model will find the best vertical line that separates the two classes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{code/result/problem6_4.pdf}
+  \caption{Regularize $w_2$ heavily, with a decision boundary being a vertical line.}
+  \label{fig:problem6_4}
+\end{figure}
+
+\textbf{How many classification errors?} In this case, it's possible to perfectly separate the classes with a vertical line,
+so the optimal classification error will be $\textbf{0}$, as shown in the Figure \ref{fig:problem6_4}.
+
+\chapter{Problem 7: Logistic Regression vs. LDA/QDA}
+\section[GaussI vs. LinLog]{GaussI vs. LinLog: $L(\text{GaussI}) \le L(\text{LinLog})$}
+The posterior probability for the GaussI model takes the form $p(y=1|x) = \sigma(\beta_0 + \beta^\top x)$.
+This is because the log-odds, $\log \frac{p(x|y=1)p(y=1)}{p(x|y=0)p(y=0)}$, simplifies to a linear function of $x$
+when the covariances are shared identity matrices. This function form is exactly the same as the LinLog model.
+
+However, LinLog is trained by directly maximizing the conditional log-likelihood $L(M)$, while GaussI is trained by maximizing the joint log-likelihood.
+Since the family of functions representable by LinLog contains the posterior distributions of GaussI,
+and LinLog directly optimizes the metric in question,
+it must achieve a conditional log-likelihood at least as high as GaussI.
+
+\section[GaussX vs. QuadLog]{GaussX vs. QuadLog: $L(\text{GaussX}) \le L(\text{QuadLog})$}
+The posterior probability for the GaussX model has log-odds that are a quadratic function of $x$,
+because the $x^\top \Sigma_c^{-1} x$ terms do not cancel when $\Sigma_1 \neq \Sigma_0$.
+This means the posterior is of the form $p(y=1|x) = \sigma(\beta_0 + \beta^\top x + x^\top A x)$,
+which is exactly the functional form of the QuadLog model.
+
+For the same reason as in the previous part,
+since QuadLog directly maximizes the conditional log-likelihood over a model family that includes the posteriors of GaussX,
+it will always achieve a value of $L(M)$ greater than or equal to that of GaussX.
+
+\section[LinLog vs. QuadLog]{LinLog vs. QuadLog: $L(\text{LinLog}) \le L(\text{QuadLog})$}
+The LinLog model is a special case of the QuadLog model where the quadratic coefficients are all zero.
+This means the LinLog model family is nested within the QuadLog family.
+When maximizing the same objective function ($L(M)$),
+a more expressive model (QuadLog) can always achieve a likelihood at least as high as a less expressive, nested model (LinLog),
+since it can simply learn to set the extra parameters to zero to replicate the simpler model's best solution.
+
+\section[GaussI vs. QuadLog]{GaussI vs. QuadLog: $L(\text{GaussI}) \le L(\text{QuadLog})$}
+$L(\text{GaussI}) \le L(\text{LinLog}) \le L(\text{QuadLog})$
+
+\section[L(M) vs R(M)]{$L(M)$ vs. $R(M)$}
+The conditional log-likelihood $L(M)$ measures the quality of the probabilistic predictions,
+rewarding models that assign high probability to the correct class.
+
+The misclassification rate $R(M)$ only depends on whether the predicted probability for the correct class is greater than 0.5 (for binary classification).
+
+Model $M$ has the potential (and in fact, always does) to improve its overall probability estimates at the expense of misclassifying some data points,
+thus leading to both $L(M)$ and $R(M)$ increasing simultaneously.
+
+\chapter{Problem 8: MLE \& Model Optim: Grad Descent \& Newton's Method}
+\section{Log-Likelihood Derivation}
+The likelihood function $L(\beta)$ is the probability of observing the entire $N$ independent choices $\{y_i\}_{i=1}^N$.
+Which is the product of the probabilities of each individual choice:
+\[ L(\beta) = \prod_{i=1}^N p(y_i | x_i; \beta) \]
+with the Multinomial Logit (MNL) model probability, we have:
+\begin{align*}
+  L(\beta) &= \prod_{i=1}^{N} \frac{\exp(\beta^\top x_{iy_i})}{\sum_{l \in C_i} \exp(\beta^\top x_{il})} \\
+  \ell(\beta) = \log(L(\beta)) &= \log \left( \prod_{i=1}^{N} \frac{\exp(\beta^\top x_{iy_i})}{\sum_{l \in C_i} \exp(\beta^\top x_{il})} \right) \\
+  &= \sum_{i=1}^{N} \left[ \log(\exp(\beta^\top x_{iy_i})) - \log \left( \sum_{l \in C_i} \exp(\beta^\top x_{il}) \right) \right] \\
+  &= \sum_{i=1}^{N} \left[ \beta^\top x_{iy_i} - \log \left( \sum_{l \in C_i} \exp(\beta^\top x_{il}) \right) \right]
+\end{align*}
+
+\section{Gradient and Update Rules}
+\subsection{Gradient}
+To find the gradient $\nabla\ell(\beta)$, we need to differentiate $\ell(\beta)$ with respect to $\beta$:
+\begin{align*}
+  \nabla\ell(\beta) &= \nabla \sum_{i=1}^{N} \left[ \beta^\top x_{iy_i} - \log \left( \sum_{l \in C_i} \exp(\beta^\top x_{il}) \right) \right] \\
+  &= \sum_{i=1}^{N} \left[ \nabla(\beta^\top x_{iy_i}) - \nabla \log \left( \sum_{l \in C_i} \exp(\beta^\top x_{il}) \right) \right]
+\end{align*}
+In which, the first term is straightforward $\nabla(\beta^\top x_{iy_i}) = x_{iy_i}$.
+For the second term, let $S_i(\beta) = \sum_{l \in C_i} \exp(\beta^\top x_{il})$, we have:
+\begin{align*}
+  \nabla \log(S_i(\beta)) &= \frac{1}{S_i(\beta)} \nabla S_i(\beta) \\
+  &= \frac{1}{\sum_{l \in C_i} \exp(\beta^\top x_{il})} \nabla \left( \sum_{l \in C_i} \exp(\beta^\top x_{il}) \right) \\
+  &= \frac{1}{\sum_{l \in C_i} \exp(\beta^\top x_{il})} \sum_{l \in C_i} \left( \exp(\beta^\top x_{il}) \cdot \nabla(\beta^\top x_{il}) \right) \\
+  &= \frac{1}{\sum_{l \in C_i} \exp(\beta^\top x_{il})} \sum_{l \in C_i} \exp(\beta^\top x_{il}) x_{il} \\
+  &= \sum_{l \in C_i} \frac{\exp(\beta^\top x_{il})}{\sum_{k \in C_i} \exp(\beta^\top x_{ik})} x_{il} \\
+  &= \sum_{l \in C_i} P(y_i = l | C_i, {x_{ik}}) x_{il}
+\end{align*}
+Which is the expectation of $x_{il}$ over the choices in set $C_i$, according to the model's predicted probabilities.
+Thus, the overall gradient is:
+\[ \nabla\ell(\beta) = \sum_{i=1}^{N} \left( x_{iy_i} - \sum_{l \in C_i} P(y_i = l | C_i) x_{il} \right) \]
+
+\subsection{Update Rules}
+\begin{itemize}
+  \item \textbf{Gradient Descent (GD):} This is a gradient ascent algorithm since we are maximizing the log-likelihood. The update rule is:
+    \[ \beta^{(t+1)} = \beta^{(t)} + \eta \nabla\ell(\beta^{(t)}) \]
+    where $\eta > 0$ is the learning rate.
+  \item \textbf{Newton's Method:} This method uses the Hessian matrix $H(\beta) = \nabla^2 \ell(\beta)$, which is the matrix of second partial derivatives. The update rule is:
+    \[ \beta^{(t+1)} = \beta^{(t)} - [H(\beta^{(t)})]^{-1} \nabla\ell(\beta^{(t)}) \]
+    The Hessian for the MNL log-likelihood is:
+    \[ H(\beta) = -\sum_{i=1}^{N} \left( \sum_{l \in C_i} P_l x_{il} x_{il}^\top - \left(\sum_{l \in C_i} P_l x_{il}\right) \left(\sum_{l \in C_i} P_l x_{il}\right)^\top \right) \]
+    where $P_l = P(y_i = l | C_i)$. The term inside the parenthesis is the covariance matrix of the feature vectors $x_{il}$
+    under the model's probability distribution for user $i$.
+    Since the log-likelihood function for the MNL model is concave,
+    the Hessian $H(\beta)$ is negative semidefinite, ensuring that Newton's method moves towards a maximum.
+\end{itemize}
+
+\section{GD vs. Newton's Method}
+\subsection{Adjustable Parameters}
+As mentioned earlier, gradient descent (GD) has one key adjustable hyperparameter: the learning rate $\eta$.
+Newton's method, in its pure form, does not have a learning rate\footnotemark,
+The step size and direction are entirely determined by the gradient and the inverse Hessian matrix.
+\footnotetext{In practice, a step size parameter (or damping parameter) is sometimes introduced to ensure stability, leading to the ``damped'' Newton's method.}
+
+\subsection{Convergence Speed}
+Newton's method typically converges much faster than gradient descent because it is a second-order method (using gradient and curvature (Hessian matrix) information),
+which is equivalent to fitting the objective function with a quadratic function at each update and then directly ``jumping'' to the optimal value.
+
+Gradient descent, on the other hand, is a first-order method (using only the gradient),
+which is significantly slower.
+
+However, the computational cost per step of Newton's method is much higher
+because it requires computing and inverting a $d \times d$ Hessian matrix,
+which requires $O(d^3)$ operations. Thus, in terms of wall-clock time, Newton's method may not necessarily converge faster.
+
+\textit{Fun fact: A realistic example is the PPO and TRPO algorithms in reinforcement learning.
+The latter requires computing the Fisher information matrix (the Hessian matrix of KL divergence) each step,
+while the former is a simplified version that only needs a constrained gradient information (first-order).
+Experiments have shown that the former converges faster than the latter on various tasks.}
 % 标记最后一页用于总页数计算
 \label{LastPage}
 \end{document}

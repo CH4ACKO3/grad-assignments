@@ -80,6 +80,15 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
 
+% ===== 自定义命令 =====
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newcommand{\UPPER}{\text{UPPER}}
+\newcommand{\OPEN}{\text{OPEN}}
+\newcommand{\ParentOf}{\text{ParentOf}}
+
 \begin{document}
 
 % ===== 标题页 & 目录 =====
@@ -211,7 +220,128 @@ that is, $V_k$ is a concave function. Since we have already derived the piecewis
 we can prove its concavity by case analysis on $x_k$, expanding the expressions of $V_{k+1}$,
 and using a little bit induction assumption.
 However, this would be quite tedious and the proof is straightforward to those who understand the problem structure.
+
 \chapter{Problem 2: Label correcting with negative arc lengths}
+\section{Proof of Correctness}
+Let's prove that the modified algorithm terminates with a shortest path from $s$ to $t$.
+The proof is divided into two parts: firstly, we prove that the algorithm must terminate;
+secondly, we prove that upon termination, the computed distance $d_t$ is indeed the shortest path distance.
+
+\subsection*{Part A: Termination}
+Let $d_j$ be the label of node $j$, representing the length of a computed path from $s$ to $j$.
+The algorithm initializes $d_s = 0$ and $d_j = \infty$ for all $j \neq s$.
+
+\begin{lemma}
+For any node $j$, the label $d_j$ is non-increasing throughout the execution of the algorithm.
+\end{lemma}
+
+\begin{proof}
+A label $d_j$ is updated only in the Modified Step 2, where it is set to $d_i + a_{ij}$.
+The condition for this update is $d_i + a_{ij} < \min\{d_j, \UPPER - u_j\}$, which implies $d_i + a_{ij} < d_j$.
+Thus, any update to $d_j$ strictly decreases its value.
+\end{proof}
+
+\begin{lemma}
+The label $d_j$ of any node $j$ is always greater than or equal to the shortest path distance from $s$ to $j$,
+denoted $\delta(s, j)$.
+\end{lemma}
+
+\begin{proof}
+We prove this by induction on the number of label updates.
+
+\textbf{Base Case:} Initially, $d_s = 0 = \delta(s, s)$ and $d_j = \infty \ge \delta(s, j)$ for $j \neq s$, the property holds.
+
+\textbf{Induction:} Assume that before any update, $d_k \ge \delta(s, k)$ for all nodes $k$.
+Consider an update to $d_j$ where $d_j$ is set to $d_i + a_{ij}$. By the inductive hypothesis,
+$d_i \ge \delta(s, i)$. By the triangle inequality for shortest paths, $\delta(s, j) \le \delta(s, i) + a_{ij}$.
+Thus, the new value for $d_j$ satisfies:
+\[ d_j^{\text{new}} = d_i + a_{ij} \ge \delta(s, i) + a_{ij} \ge \delta(s, j) \]
+The property is maintained after the update.
+\end{proof}
+
+\begin{theorem}
+The algorithm terminates.
+\end{theorem}
+
+\begin{proof}
+The algorithm terminates when the set $\OPEN$ is empty.
+A node $j$ is added to $\OPEN$ only when its label $d_j$ decreases.
+Therefore, we need to prove that each $d_j$ can only be decreased a finite number of times.
+
+From the previous lemma, we know that $d_j \geq \delta(s, j)$, and $d_j$ can only decrease.
+If we assume that arc lengths $a_{ij}$ are integers, then the number of possible values for $d_j$
+between its initial value and its lower bound $\delta(s, j)$ is finite.
+Therefore, the label of each node $j$ can only be updated a finite number of times,
+and thus can only be added to the $\OPEN$ set a finite number of times.
+Since the number of nodes is also finite, the algorithm must terminate.
+\end{proof}
+
+\subsection*{Part B: Correctness}
+We now prove that upon termination, the algorithm finds a shortest path.
+That is, the final label $d_t$ equals the shortest path distance $\delta(s, t)$.
+
+\begin{theorem}
+If the graph $G$ contains no negative cycles and there is a path from $s$ to $t$,
+the modified label correcting algorithm terminates with $d_t = \delta(s, t)$.
+\end{theorem}
+\begin{proof}
+We know from Lemma 2 that $d_j \ge \delta(s, j)$ for all nodes $j$ throughout the algorithm.
+Thus, at termination, $d_t \ge \delta(s, t)$. We only need to prove that $d_t \le \delta(s, t)$.
+We prove this by contradiction. Assume the algorithm terminates with $d_t > \delta(s, t)$.
+Let $P^* = (s=v_0, v_1, \dots, v_k=t)$ be a shortest path from $s$ to $t$.
+Since $d_{v_0} = d_s = 0 = \delta(s, s)$ and we assume $d_{v_k} = d_t > \delta(s, t)$,
+there must be a first node $v_m$ on this path for which the final label $d_{v_m}$ satisfies $d_{v_m} > \delta(s, v_m)$.
+Since $v_m$ is the first such node on $P^*$, the label for the preceding node, $v_{m-1}$,
+must be correct at termination. That is, $d_{v_{m-1}} = \delta(s, v_{m-1})$.
+Because the algorithm has terminated, the set $\OPEN$ is empty.
+Which implies that node $v_{m-1}$ must have been removed from $\OPEN$ at some point after its label was last updated.
+Let's consider the last time $v_{m-1}$ was removed from $\OPEN$.
+At that time, its label was its final, optimal value, $d_{v_{m-1}} = \delta(s, v_{m-1})$.
+During the processing of $v_{m-1}$, the algorithm examined the arc $(v_{m-1}, v_m)$.
+Since the final label $d_{v_m}$ is not $\delta(s, v_m)$, the relaxation step for $v_m$ via $v_{m-1}$ must have failed.
+This means the condition for the update was not met:
+\[ d_{v_{m-1}} + a_{v_{m-1}, v_m} \ge \min\{d_{v_m}, \UPPER - u_{v_m}\} \]
+(where $d_{v_m}$ and $\UPPER$ are the values at that time).
+Since labels only decrease, the final values also satisfy this inequality.
+Substituting $d_{v_{m-1}} = \delta(s, v_{m-1})$ and noting that $\delta(s, v_{m-1}) + a_{v_{m-1}, v_m} = \delta(s, v_m)$
+because $(v_{m-1}, v_m)$ is an arc on a shortest path, we get:
+\[ \delta(s, v_m) \ge \min\{d_{v_m}, \UPPER - u_{v_m}\} \]
+This implies two conditions must hold:
+\begin{enumerate}
+    \item $\delta(s, v_m) \ge d_{v_m}$
+    \item $\delta(s, v_m) \ge \UPPER - u_{v_m}$
+\end{enumerate}
+Let's analyze the first condition. We already know from Lemma 2 that $d_{v_m} \ge \delta(s, v_m)$.
+Combining this with $\delta(s, v_m) \ge d_{v_m}$ implies that $d_{v_m} = \delta(s, v_m)$.
+This contradicts our assumption that $v_m$ was the first node on the path with $d_{v_m} > \delta(s, v_m)$.
+The pruning condition $\UPPER - u_j$ does not discard the shortest path: $\UPPER$ is the length of some $s-t$ path, so $\UPPER \ge \delta(s, t)$. The value $u_{v_m}$ is an underestimate of the distance from $v_m$ to $t$, so $u_{v_m} \le \delta(v_m, t)$.
+Therefore,
+\[ \UPPER - u_{v_m} \ge \delta(s, t) - \delta(v_m, t) \]
+Since $v_m$ is on a shortest path to $t$, we have $\delta(s, t) = \delta(s, v_m) + \delta(v_m, t)$. Substituting this gives:
+\[ \UPPER - u_{v_m} \ge (\delta(s, v_m) + \delta(v_m, t)) - \delta(v_m, t) = \delta(s, v_m) \]
+This shows that $\delta(s, v_m) \le \UPPER - u_{v_m}$ is always true.
+The pruning step only prevents an update if $\delta(s, v_m) \ge \UPPER - u_{v_m}$, which can only happen if equality holds.
+This pruning is safe because if $d_i + a_{ij} + u_j \ge \UPPER$,
+the path through $(i,j)$ cannot lead to a better solution than the one that defined the current $\UPPER$.
+
+To this end, we have proved that the assumption that a node on the shortest path has a suboptimal label at termination is false.
+Thus, all nodes on the shortest path, including $t$, must have their optimal labels.
+That is, upon termination, $d_t = \delta(s, t)$.
+\end{proof}
+
+\newpage
+\section{Label Correcting Algorithm as a Special Case}
+We can see that the Label Correcting Algorithm given in class is a special case of the modified algorithm
+through comparing their update rules:
+\begin{itemize}
+  \item \textbf{Standard LCA Update Rule:}
+  \[ d_i + a_{ij} < \min\{d_j, \UPPER\} \]
+  \item \textbf{Modified LCA Update Rule:}
+  \[ d_i + a_{ij} < \min\{d_j, \UPPER - u_j\} \]
+\end{itemize}
+it's straightforward that setting $u_j$ to zero in modified LCA will lead to standard LCA.
+But it's also worth noting that setting $u_j=0$ implies that $\delta(j,t)>=0$ for any node $j$,
+which is always true only when arc length $\geq 0$, which is consistent with the conditions for standard LCA.
 
 \chapter{Problem 3: ~}
 

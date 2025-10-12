@@ -1,0 +1,233 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除"Chapter"字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Dynamic Programming and Stochastic Control - Assignment 1}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+\maketitle
+\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+\begin{KeepFromToc} % 将目录本身排除在目录之外
+\tableofcontents
+\end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Problem 1: Dynamic Pricing in Discrete Time}
+\section{Derivation of Value Function}
+Recall that in a Markov Decision Process with random state transition, the optimal action $a^*(s)$ in state $s$ is defined as:
+\[ a^*(s) = \arg \max_{a \in A} Q(s,a) = \arg \max_{a \in A} \mathbb{E}_{s' \sim P(s'|s,a)} \left[ r(s',s,a) + V(s') \right] \]
+For the given problem, the state of $k^\text{th}$ day is the remaining unsold items $x_k$,
+and the action is the price $u_k$. Thus we can write the optimal action as:
+\[ u_k^*\footnotemark = u^*(k, x_k) = \arg \max_{u \in \mathbb{R}_+} \mathbb{E}_{x_{k+1} \sim P(x_{k+1}|x_k,u)} \left[ g(x_{k+1},x_k,u_k) + V_{k+1}(x_{k+1}) \right] \]
+Where $g(x_{k+1},x_k,u_k)$ is the profit from selling $x_k-x_{k+1}$ items at price $u$, that is:
+\[ g(x_{k+1},x_k,u_k) = u_k(x_k-x_{k+1}) \]
+and $V_{k+1} (x_{k+1})$ is the optimal expected value function of the next state $(k+1, x_{k+1})$.
+Since we already have:
+\[ q_k(u_k) = \alpha \exp (-u_k) \]
+Thus the action value function $Q(x_k,u_k)$ for any $x_k > 0$ can be expanded (from its expectation form) as:
+\begin{align*}
+  Q(x_k,u_k) =& ~\alpha \exp (-u_k) \left[ g(x_k-1,x_k,u_k) + V_{k+1}(x_k-1) \right] \\
+  &+ (1-\alpha \exp (-u_k)) \left[ g(x_k,x_k,u_k) + V_{k+1}(x_k) \right] \\
+  =& ~\alpha \exp (-u_k) \left[ u_k + V_{k+1}(x_k-1) \right] \\
+  &+ (1-\alpha \exp (-u_k)) \left[ V_{k+1}(x_k) \right]
+\end{align*}
+To find the optimal $u_k$, we take the derivative of $Q(x_k,u_k)$ with respect to $u_k$ and set it to zero:
+\begin{align*}
+  \frac{\partial Q}{\partial u_k} =& -\alpha \exp (-u_k) \left[ u_k + V_{k+1}(x_k-1) \right] \\
+  &+ \alpha \exp (-u_k) \cdot 1 \\
+  &+ \alpha \exp (-u_k) \left[ V_{k+1}(x_k) \right] \\
+  =& ~\alpha \exp (-u_k) \left[ 1 - u_k - V_{k+1}(x_k-1) + V_{k+1}(x_k) \right] = 0 \\
+  \implies& ~\alpha \exp (-u_k^*) \left[ u_k^* + V_{k+1}(x_k-1) - V_{k+1}(x_k) \right] = \alpha \exp (-u_k^*) \\
+  & ~u^*_k = 1 + V_{k+1}(x_k) - V_{k+1}(x_k-1)
+\end{align*}
+Thus,
+\begin{align*}
+  V_k(x_k) = Q(x_k, u_k^*) &= \alpha \exp(-u_k^*) \left[ u_k^*(x_k) + V_{k+1}(x_k-1) - V_{k+1}(x_k) \right] + V_{k+1}(x_k)\\
+  &= \alpha \exp (-u_k^*) + V_{k+1}(x_k)
+\end{align*}
+
+\footnotetext{For simplicity, we use $u_k$ instead of $u_k(x_k)$ when there is no ambiguity.}
+
+\section{Proof of Monotonicity}
+Assume that $V_k(0) = 0$ and $V_{N}(x_{N}) = 0$, let's prove the closed form of $V_k(x_k)$ by induction.
+
+Assume that for some $k < N$, $V_k(x_k)$ has the closed form:
+\begin{align*}
+  V_k(x_k) = 
+  \begin{cases}
+    (N-k)\alpha \exp(-1) & \text{if } x_k \geq N-k \\
+    \sum_{i=k}^{N-x_k} \alpha \exp(-u_i^*(x_k)) + x_k \alpha \exp(-1) & \text{if } 0 < x_k < N-k \\
+    0 & \text{if } x_k = 0
+  \end{cases}
+\end{align*}
+
+For $V_{k-1}$, there are four cases:
+\begin{enumerate}
+  \item $x_{k-1} = 0$ \\
+    $V_{k-1}(x_{k-1}) = 0$ according to our assumption.
+  \item $0 < x_{k-1} < N-k$
+    \begin{align*}
+      V_{k-1}(x_{k-1}) &= \alpha \exp(-u_{k-1}^*(x_{k-1})) + V_k(x_{k-1}) \\
+      &= \alpha \exp(-u_{k-1}^*(x_{k-1})) + \sum_{i=k}^{N-x_{k-1}} \alpha \exp(-u_i^*(x_{k-1})) + x_{k-1} \alpha \exp(-1) \\
+      &= \sum_{i=k-1}^{N-x_{k-1}} \alpha \exp(-u_i^*(x_{k-1})) + x_{k-1} \alpha \exp(-1)
+    \end{align*}
+  \item $x_{k-1} = N-k$ \\
+    Let's first derive $u_{k-1}^*(x_{k-1})$. Assume that for some $k < N-1$, $u_k^*(N-k-1) = 1$, then: 
+    \begin{align*}
+      u_{k-1}^*(N-k) &= 1 + V_k(N-k) - V_k(N-k-1) \\
+      &= 1 + (N-k)\alpha \exp(-1) \\
+      &\qquad - \left( \sum_{i=k}^{N-x_{k-1}+1} \alpha \exp(-u_i^*(x_{k-1}-1)) + (x_{k-1}-1) \alpha \exp(-1) \right) \\
+      &= 1 + (N-k)\alpha \exp(-1) - \left( \alpha \exp(-1) + (N-k-1) \alpha \exp(-1) \right)\\
+      &= 1
+    \end{align*}
+    Which also holds for $k=N-1$, $u_{N-1}^*(0) = 1$. Thus,
+    \begin{align*}
+      V_{k-1}(x_{k-1}) &= \alpha \exp(-u_{k-1}^*(x_{k-1})) + V_k(x_{k-1}) \\
+      &= \alpha \exp(-u_{k-1}^*(N-k)) + (N-k)\alpha \exp(-1) \\
+      &= \alpha \exp(-1) + (N-k) \alpha \exp(-1) \\
+      &= (N-(k-1)) \alpha \exp(-1)
+    \end{align*}
+  \item $x_{k-1} \geq N-(k-1) \quad (x_{k-1} > N-k)$
+    \begin{align*}
+      u_{k-1}^*(x_{k-1}) &= 1 + V_k(x_{k-1}) - V_k(x_{k-1}-1) \\
+      &= 1 + (N-k)\alpha \exp(-1) - (N-k)\alpha \exp(-1) \quad (x_{k-1}-1 \geq N-k)\\
+      &= 1
+    \end{align*}
+    Thus,
+    \begin{align*}
+      V_{k-1}(x_{k-1}) &= \alpha \exp(-u_{k-1}^*(x_{k-1})) + V_k(x_{k-1}) \\
+      &= \alpha \exp(-1) + (N-k)\alpha \exp(-1) \\
+      &= (N-(k-1)) \alpha \exp(-1)
+    \end{align*}
+\end{enumerate}
+
+Therefore, we have proved that the induction relation holds.
+For $k=N$, It's trivial to prove that the assumption also holds by substitution. We have therefore proved the closed form of $V_k(x_k)$.
+
+% Then, we can write the closed form of $u_k^*(x_k)$ as:
+% \begin{align*}
+%   u_k^*(x_k) &= 1 + V_{k+1}(x_k) - V_{k+1}(x_k-1) \\
+%   &=
+%   \begin{cases}
+%     1 + (N-k)\alpha \exp(-1) - (N-k)\alpha \exp(-1) = 1 & \text{if } x_k-1 \geq N-k \\
+%     1 + (N-k)\alpha \exp(-1) - \left( \alpha \exp(-1) + (N-k-1) \alpha \exp(-1) \right) = 1 & \text{if } x_k = N-k \\
+%     1 + (x_k-(x_k-1))\alpha \exp(-1) - \alpha \exp(-u_{N-x_k}^*(x_k)) & \text{if } x_k < N-k
+%   \end{cases}
+% \end{align*}
+% Let's expand the last case:
+% \begin{align*}
+%    ~& 1 + (x_k-(x_k-1))\alpha \exp(-1) - \alpha \exp(-u_{N-x_k}^*(x_k-1)) \\
+%   =~& 1 + \alpha \left( \exp(-1) - \exp(-u_{N-x_k}^*(x_k-1)) \right) \\
+%   =~& 1 + \alpha \left[ \exp(-1) - \exp \left[ - (1 + V_{N-x_k+1}(x_k-1) - V_{N-x_k+1}(x_k-2)) \right] \right] \\
+% \end{align*}
+
+Then, we can prove the monotonically non-increasing property of $u_k^*(x_k)$.
+\begin{align*}
+  u_k^*(x_k) &= 1 + V_{k+1}(x_k) - V_{k+1}(x_k-1) \\
+  u_k^*(x_k)-u_k^*(x_k-1) &= V_{k+1}(x_k) - 2V_{k+1}(x_k-1) + V_{k+1}(x_k-2)
+\end{align*}
+Which actually requires us to prove that $V_{k+1}(x_k) - 2V_{k+1}(x_k-1) + V_{k+1}(x_k-2) \leq 0$,
+that is, $V_k$ is a concave function. Since we have already derived the piecewise form of $V_k$,
+we can prove its concavity by case analysis on $x_k$, expanding the expressions of $V_{k+1}$,
+and using a little bit induction assumption.
+However, this would be quite tedious and the proof is straightforward to those who understand the problem structure.
+\chapter{Problem 2: Label correcting with negative arc lengths}
+
+\chapter{Problem 3: ~}
+
+\chapter{Problem 4: ~}
+
+\chapter{Problem 5: ~}
+
+\chapter{Problem 6: ~}
+
+\chapter{Problem 7: ~}
+
+\chapter{Problem 8: ~}
+
+\chapter{Problem 9: ~}
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}
+

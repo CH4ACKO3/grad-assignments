@@ -24,7 +24,8 @@
 \usepackage{multirow}
 
 % 中文支持
-% \usepackage[UTF8]{ctex}
+\usepackage[UTF8]{ctex}
+\ctexset{proofname={Proof}}
 
 % 其他实用包
 \usepackage{hyperref}
@@ -399,17 +400,364 @@ or record the $\arg \min_{j} \{d_{v_j} + a_{j+1, i}\}$ for each $i$ during Itera
   \end{algorithmic}
 \end{algorithm}
 
-\chapter{Problem 4: ~}
+\chapter{Problem 4: Dynamic Programming with Discount Factor}
+To derive the given DP algorithm, we will use the Principle of Optimality.
+We define the value function $V_k(x_k)$ as the minimum expected discounted cost-to-go from stage $k$ to stage $N$,
+given that the system is in state $x_k$ at time $k$.
 
-\chapter{Problem 5: ~}
+According to the definition, $V_k(x_k)$ should be:
+\[ V_k(x_k) = \min_{\mu_k, \dots, \mu_{N-1}} E_{w_k, \dots, w_{N-1}} \left( \sum_{j=k}^{N-1} \alpha^{j-k} g_j(x_j, \mu_j(x_j), w_j) + \alpha^{N-k} g_N(x_N) \right) \]
+This definition implies that $V_k(x_k)$ represents the minimum expected future cost,
+where each instantaneous cost $g_j$ is discounted by $\alpha^{j-k}$ relative to stage $k$.
 
-\chapter{Problem 6: ~}
+For the terminal stage $k=N$, the summation $\sum_{j=N}^{N-1}$ is empty. According to our definition of $V_N(x_N)$:
+\[ V_N(x_N) = \min E \left( \alpha^{N-N} g_N(x_N) \right) = g_N(x_N) \]
+Which matches the first equation provided in the problem statement.
 
-\chapter{Problem 7: ~}
+For any stage $k < N$, we apply the Principle of Optimality. The optimal cost $V_k(x_k)$ can be expressed by considering the immediate cost at stage $k$ and the optimal future cost from stage $k+1$.
+\begin{align*}
+  V_k(x_k) = \min_{u_k \in U_k(x_k)} E_{w_k} \left[ \alpha^{k-k} g_k + \min_{\mu_{k+1}, \dots, \mu_{N-1}} E_{w_{k+1}, \dots, w_{N-1}} \left( \sum_{j=k+1}^{N-1} \alpha^{j-k} g_j + \alpha^{N-k} g_N \right) \right]
+\end{align*}
+Where we omit the dependence of $g_k(x_k, u_k, w_k)$ for simplicity. In which, the second term in the expectation:
+\[ \min_{\mu_{k+1}, \dots, \mu_{N-1}} E_{w_{k+1}, \dots, w_{N-1}} \left( \sum_{j=k+1}^{N-1} \alpha^{j-k} g_j + \alpha^{N-k} g_N \right) \]
+We can factor out $\alpha$ from each term in the sum and the terminal cost:
+\begin{align*}
+  &= \min_{\mu_{k+1}, \dots, \mu_{N-1}} E_{w_{k+1}, \dots, w_{N-1}} \left( \alpha \sum_{j=k+1}^{N-1} \alpha^{j-(k+1)} g_j + \alpha \alpha^{N-(k+1)} g_N \right) \\
+  &= \alpha \min_{\mu_{k+1}, \dots, \mu_{N-1}} E_{w_{k+1}, \dots, w_{N-1}} \left( \sum_{j=k+1}^{N-1} \alpha^{j-(k+1)} g_j + \alpha^{N-(k+1)} g_N \right)
+\end{align*}
+Which matches exactly with previously defined $V_{k+1}(x_{k+1})$.
+Thus, we can re-write the expression as:
+\begin{align*}
+  V_k(x_k) &= \min_{u_k \in U_k(x_k)} E_{w_k} \left[ \alpha^{k-k} g_k + \alpha V_{k+1}(x_{k+1}) \right] \\
+  &= \min_{u_k \in U_k(x_k)} E_{w_k} \left[ g_k(x_k, u_k, w_k) + \alpha V_{k+1}(f_k(x_k, u_k, w_k)) \right]
+\end{align*}
+Which matches exactly with the given DP algorithm.
 
-\chapter{Problem 8: ~}
+\chapter{Problem 5: Dynamic Programming with Conditional Termination}
+To reformulate the problem into the basic problem framework,
+we need to define a new augmented state, augmented system dynamics,
+and augmented cost functions that capture the termination logic and costs.
 
-\chapter{Problem 9: ~}
+Let the original state be $x_k$. We augment the state $x_k$ with a binary flag $s_k$ indicating whether the system has terminated.
+Thus the new state is $\tilde{x}_k = (x_k, s_k)$.
+When $s_k = \text{TRUE}$, the specific value of $x_k$ is no longer relevant for future evolution or costs.
+We can introduce a dummy state $x_{\text{dummy}}$ for this component.
+
+Then, the new system dynamics can be written as:
+\begin{align*}
+  \tilde{x}_{k+1} = \begin{cases}
+    (x_{\text{dummy}}, \text{TRUE}) & \text{if } s_k = \text{TRUE} \text{ or } w_k = \bar{w} \text{ or } u_k = \bar{u}\\
+    (f_k(x_k, u_k, w_k), \text{FALSE}) & \text{otherwise}
+  \end{cases}
+\end{align*}
+
+The new control policy is:
+\begin{align*}
+  \tilde{u}_k(\tilde{x}_k) = \begin{cases}
+    u_{\text{dummy}} & \text{if } s_k = \text{TRUE} \\
+    u_k(x_k) & \text{otherwise}
+  \end{cases}
+\end{align*}
+Where $u_{\text{dummy}}$ acts as a padding strategy, only used to ensure the consistency of the formula.
+
+The new cost function is:
+\begin{align*}
+  \tilde{g}_k(\tilde{x}_k, \tilde{u}_k, w_k) = \begin{cases}
+    0 & \text{if } s_k = \text{TRUE} \\
+    g_k(x_k, u_k, w_k) + T & \text{if } s_k = \text{FALSE} \text{ and } (w_k = \bar{w} \text{ or } u_k = \bar{u}) \\
+    g_k(x_k, u_k, w_k) & \text{otherwise}
+  \end{cases}
+\end{align*}
+
+To this end, we have reformulated the problem into the basic problem framework.
+One can directly use the formula from the basic problem to solve this problem with a termination state:
+\begin{align*}
+  E\left[\tilde{g}_N(\tilde{x}_N) + \sum_{k=i}^{N-1} \tilde{g}_k(\tilde{x}_k, \tilde{u}_k(\tilde{x}_k), w_k) \right]
+\end{align*}
+
+\chapter{Problem 6: Unbounded Knapsack Problem}
+To handle the product maximization,
+we transform it into a sum maximization by taking the natural logarithm of the objective function.
+Since $p_j(m_j) \in (0, 1]$ (assuming non-zero success probabilities), $\log(p_j(m_j)) \leq 0$.
+Maximizing the sum of these logarithms is equivalent to maximizing their product.
+Let $g_j(m_j) = \log(p_j(m_j))$. The transformed problem is:
+
+\[ \text{Maximize } \sum_{j=1}^N g_j(m_j) \]
+\[ \text{Subject to } \sum_{j=1}^N c_j m_j \leq A, \quad m_j \in \{0, 1, 2, \ldots\} \]
+
+Which is a classic unbounded knapsack problem.
+
+Let $dp(j, k)$ represent the maximum total log-reliability for the first $j$ stages (i.e., stages $1, 2, \ldots, j$), given that a total cost of exactly $k$ has been spent on spare components for these $j$ stages.
+\begin{itemize}
+\item $j$: The current stage index, ranging from $0$ to $N$.
+\item $k$: The total cost spent on spare components for stages $1$ through $j$, ranging from $0$ to $A$.
+\end{itemize}
+Then we have base cases:
+\begin{itemize}
+  \item $dp(0, 0) = 0$: represents the state before considering any stages,
+    where no cost has been spent and the accumulated log-reliability is $0$ (an empty product is $1$).
+  \item $dp(0, k) = -\infty$ for $k = 1, \ldots, A$: Any state with a non-zero cost before processing any stages is unreachable.
+    We use $-\infty$ to denote an unreachable state or a state with zero reliability (since $\log(0) = -\infty$).
+\end{itemize}
+The state transition would be:
+\[ dp(j, k) = \max_{0 \leq m_j \leq \lfloor k / c_j \rfloor} \{ dp(j-1, k - c_j m_j) + g_j(m_j) \} \]
+The maximization is performed over all valid integer values of $m_j$ such that $c_j m_j \leq k$
+(to ensure $k - c_j m_j \geq 0$) and $m_j \geq 0$. We initialize $dp(j, k) = -\infty$ for all $j, k$ before computation.
+We only consider terms where $dp(j-1, k - c_j m_j) \neq -\infty$.
+
+After filling the $DP$ table up to stage $N$, the maximum total log-reliability for the entire device,
+considering all possible budget allocations up to $A$, is:
+\[ \max_{0 \leq k \leq A} dp(N, k) \]
+The maximum overall device reliability is then obtained by exponentiating this value:
+\[ \text{Maximum Reliability} = e^{\max_{0 \leq k \leq A} dp(N, k)} \]
+To reconstruct the optimal solution, one can store the optimal $m_j$ for each $j, k$ during iteration,
+and then backtrack to find the optimal solution.
+
+\chapter{Problem 7: Monotonicity Property of Dynamic Programming}
+We need to prove two statements:
+\begin{enumerate}
+\item If $J_{N-1}(x) \le J_N(x)$ for all $x \in S$, then $J_k(x) \le J_{k+1}(x)$ for all $x \in S$ and $k \in \{0, \dots, N-1\}$.
+\item If $J_{N-1}(x) \ge J_N(x)$ for all $x \in S$, then $J_k(x) \ge J_{k+1}(x)$ for all $x \in S$ and $k \in \{0, \dots, N-1\}$.
+\end{enumerate}
+The core of the proof relies on the monotonicity of the Bellman operator:
+
+For a time-invariant system, we can define the Bellman operator $T$ as:
+$T(J)(x) = \min_{u \in U(x)} E_w[g(x, u, w) + J(f(x, u, w))]$
+The DP recursion can then be written as $J_k(x) = T(J_{k+1})(x)$.
+
+\begin{lemma}
+  If two functions $J(y)$ and $\bar{J}(y)$ satisfy $J(y) \le \bar{J}(y)$ for all $y \in S$, then $T(J)(x) \le T(\bar{J})(x)$ for all $x \in S$.
+\end{lemma}
+
+\begin{proof}
+  Assume $J(y) \le \bar{J}(y)$ for all $y \in S$.
+  For any given state $x \in S$ and control $u \in U(x)$, we have:
+  $g(x, u, w) + J(f(x, u, w)) \le g(x, u, w) + \bar{J}(f(x, u, w))$.
+  Taking the expectation with respect to $w$ (which preserves inequalities):
+  $E_w[g(x, u, w) + J(f(x, u, w))] \le E_w[g(x, u, w) + \bar{J}(f(x, u, w))]$.
+  Let $Q_J(x, u) = E_w[g(x, u, w) + J(f(x, u, w))]$ and $Q_{\bar{J}}(x, u) = E_w[g(x, u, w) + \bar{J}(f(x, u, w))]$.
+  Thus, $Q_J(x, u) \le Q_{\bar{J}}(x, u)$ for all $u \in U(x)$.
+
+  Now, consider the definition of the Bellman operator:
+  $T(J)(x) = \min_{u \in U(x)} Q_J(x, u),T(\bar{J})(x) = \min_{u \in U(x)} Q_{\bar{J}}(x, u)$.
+  Let $u^*$ be an optimal control for $T(\bar{J})(x)$, so $T(\bar{J})(x) = Q_{\bar{J}}(x, u^*)$.
+  Since $Q_J(x, u) \le Q_{\bar{J}}(x, u)$ for all $u \in U(x)$, it follows that $Q_J(x, u^*) \le Q_{\bar{J}}(x, u^*)$.
+  By the definition of the minimum, $T(J)(x) \le Q_J(x, u^*)$.
+  Combining these inequalities, we get:
+  $T(J)(x) \le Q_J(x, u^*) \le Q_{\bar{J}}(x, u^*) = T(\bar{J})(x)$.
+  Therefore, the monotonicity of Bellman operator $T$ is guaranteed.
+\end{proof}
+
+\begin{lemma}
+If $J_{N-1}(x) \le J_N(x)$ for all $x \in S$, then $J_k(x) \le J_{k+1}(x)$ for all $x \in S$ and $k \in \{0, \dots, N-1\}$.
+\end{lemma}
+
+\begin{proof}
+  We will prove this by backward induction on $k$.
+
+  \textbf{Inductive Hypothesis}:
+  Assume that for some $k \in \{0, \dots, N-2\}$, we have $J_{k+1}(x) \le J_{k+2}(x)$ for all $x \in S$.
+
+  \textbf{Inductive Step}:
+  We need to show that $J_k(x) \le J_{k+1}(x)$ for all $x \in S$.
+  From the Bellman equation, we have:
+  \begin{align*}
+    J_k(x) &= T(J_{k+1})(x) \\
+    J_{k+1}(x) &= T(J_{k+2})(x)
+  \end{align*}
+  By the inductive hypothesis, $J_{k+1}(y) \le J_{k+2}(y)$ for all $y \in S$.
+  Since the Bellman operator $T$ is monotonic, applying $T$ to both sides of the inequality $J_{k+1} \le J_{k+2}$ preserves the inequality:
+  $T(J_{k+1})(x) \le T(J_{k+2})(x)$.
+  Substituting the definitions of $J_k(x)$ and $J_{k+1}(x)$ from the Bellman equation:
+  $J_k(x) \le J_{k+1}(x)$.
+  This completes the induction.
+\end{proof}
+
+\begin{lemma}
+  If $J_{N-1}(x) \ge J_N(x)$ for all $x \in S$, then $J_k(x) \ge J_{k+1}(x)$ for all $x \in S$ and $k \in \{0, \dots, N-1\}$.
+\end{lemma}
+
+\begin{proof}
+  This can be proven using the exact same steps as above.
+
+  \textbf{Inductive Hypothesis}:
+  Assume that for some $k \in \{0, \dots, N-2\}$, we have $J_{k+1}(x) \ge J_{k+2}(x)$ for all $x \in S$.
+
+  \textbf{Inductive Step}:
+  We need to show that $J_k(x) \ge J_{k+1}(x)$ for all $x \in S$.
+  From the Bellman equation, we have:
+  \begin{align*}
+    J_k(x) &= T(J_{k+1})(x) \\
+    J_{k+1}(x) &= T(J_{k+2})(x)
+  \end{align*}
+  By the inductive hypothesis, $J_{k+1}(y) \ge J_{k+2}(y)$ for all $y \in S$.
+  Since the Bellman operator $T$ is monotonic, applying $T$ to both sides of the inequality $J_{k+1} \ge J_{k+2}$ preserves the inequality:
+  $T(J_{k+1})(x) \ge T(J_{k+2})(x)$.
+  Substituting the definitions of $J_k(x)$ and $J_{k+1}(x)$ from the Bellman equation:
+  $J_k(x) \ge J_{k+1}(x)$.
+  This completes the induction.
+\end{proof}
+
+To this end, we have proved the monotonicity property of DP.
+
+\chapter{Problem 8: Multiplicative Cost Dynamic Programming}
+In the framework of a basic finite-horizon optimal control problem, we consider a system with state dynamics given by:
+\[
+x_{k+1} = f_k(x_k, u_k, w_k), \quad k = 0, 1, \dots, N-1
+\]
+where $x_k$ is the state at stage $k$, $u_k$ is the control chosen at stage $k$,
+and $w_k$ is a random disturbance occurring at stage $k$. The initial state $x_0$ is given.
+
+The problem specifies a multiplicative cost function:
+\[
+E_w[g_N(x_N)\prod_{k=1}^{N}g_k(x_k,u_k,w_k)]
+\]
+To provide a well-posed DP-like algorithm within the ``basic problem framework'', we interpret the cost function as follows:
+\begin{itemize}
+    \item $g_N(x_N)$ is the terminal cost, dependent only on the final state $x_N$.
+    \item The product term $\prod_{k=0}^{N-1} g_k(x_k, u_k, w_k)$ represents the product of stage costs, where $g_k(x_k, u_k, w_k)$ is the cost factor incurred at stage $k$ due to state $x_k$, control $u_k$, and disturbance $w_k$. The original problem's indexing ($k=1$ to $N$ in the product) is adjusted to $k=0$ to $N-1$ to align with standard finite-horizon DP where controls $u_0, \dots, u_{N-1}$ are chosen.
+\end{itemize}
+Thus, the total cost function to be minimized is interpreted as:
+\[
+J = E_{w_0, \dots, w_{N-1}}\left[g_N(x_N) \cdot \prod_{k=0}^{N-1} g_k(x_k, u_k, w_k)\right]
+\]
+The objective is to find a policy $\pi = \{\mu_0, \dots, \mu_{N-1}\}$ such that $u_k = \mu_k(x_k)$ minimizes $J$.
+The problem states that $g_k(x_k, u_k, w_k) \ge 0$ for all $x_k, u_k, w_k$,
+which is crucial for the well-definedness of the minimization problem with a multiplicative cost.
+
+\section{Dynamic Programming Algorithm}
+We develop a dynamic programming algorithm using a backward pass approach. Let $J_k(x_k)$ denote the minimum expected cost from stage $k$ to the terminal stage $N$, given that the system is in state $x_k$ at stage $k$.
+\subsection*{1. Terminal Stage ($N$)}
+At the terminal stage $N$, no further controls are chosen. The remaining cost is simply the terminal cost $g_N(x_N)$.
+\[
+J_N(x_N) = g_N(x_N)
+\]
+for all possible states $x_N$.
+\subsection*{2. Iteration for Stages $k = N-1, N-2, \dots, 0$ (Backward Pass)}
+For each stage $k$ (from $N-1$ down to $0$) and for each possible state $x_k$:
+The decision is to choose a control $u_k$. This choice incurs an immediate multiplicative cost factor $g_k(x_k, u_k, w_k)$ and transitions the system to a new state $x_{k+1} = f_k(x_k, u_k, w_k)$. The minimum expected future cost from $x_{k+1}$ is $J_{k+1}(x_{k+1})$.
+Since the cost is multiplicative and all $g_k \ge 0$, the total expected cost from stage $k$ onwards, given $x_k$ and $u_k$, is the expectation of the product of the current cost factor and the future minimum expected cost.
+The Bellman equation for this problem is:
+\[
+J_k(x_k) = \min_{u_k \in U_k(x_k)} E_{w_k}[g_k(x_k, u_k, w_k) \cdot J_{k+1}(f_k(x_k, u_k, w_k))]
+\]
+where $U_k(x_k)$ is the set of admissible controls at state $x_k$ at stage $k$.
+The optimal control policy $\mu_k(x_k)$ for state $x_k$ at stage $k$ is stored as:
+\[
+\mu_k(x_k) = \arg\min_{u_k \in U_k(x_k)} E_{w_k}[g_k(x_k, u_k, w_k) \cdot J_{k+1}(f_k(x_k, u_k, w_k))]
+\]
+% If the disturbance $w_k$ is a discrete random variable with a known probability distribution $P(w_k)$,
+% the expectation can be computed as a sum:
+% \[
+% E_{w_k}[\dots] = \sum_{w_k} P(w_k) \cdot [g_k(x_k, u_k, w_k) \cdot J_{k+1}(f_k(x_k, u_k, w_k))]
+% \]
+% If $w_k$ is a continuous random variable, the expectation would be an integral.
+
+After computing $J_k(x_k)$ and $\mu_k(x_k)$ for all stages $k=N-1, \dots, 0$ and all relevant states $x_k$,
+the minimum expected total cost from the initial state $x_0$ is $J_0(x_0)$.
+The optimal policy is given by the sequence of functions $\pi^* = \{\mu_0, \mu_1, \dots, \mu_{N-1}\}$.
+
+One might be tempted to use a seemingly viable transformation by taking the logarithm of the total cost $J$
+and attempting to convert it directly into a standard additive DP problem:
+\begin{align*}
+\log(J) &= \log \left( E_{w_0, \dots, w_{N-1}}\left[g_N(x_N) \cdot \prod_{k=0}^{N-1} g_k(x_k, u_k, w_k)\right] \right) \\
+&= E_{w_0, \dots, w_{N-1}}\left[\log(g_N(x_N)) + \sum_{k=0}^{N-1} \log(g_k(x_k, u_k, w_k))\right]
+\end{align*}
+however, this is incorrect because the logarithm is a non-linear function that does not commute with the expectation operator, meaning $\log(E[X]) \neq E[\log X]$.
+
+\chapter{Problem 9: Flexible Employment}
+\textit{The original solution title was ``Optimal Job Reception Problem'', but the term ``灵活就业'' suddenly came to my mind. Quite interesting anyway.}
+
+Let $P(w_j)$ be the probability of receiving a job offer with salary $w_j$, $c$ be the unemployment benefit,
+and $\alpha < 1$ be the discount factor. Define the following value functions:
+\begin{itemize}
+    \item $V(\bar{s}_j)$: The maximum expected discounted income if the worker is employed at salary $w_j$.
+    \item $V(s_j)$: The maximum expected discounted income if the worker is unemployed and receives an offer $w_j$.
+    \item $V_U$: The maximum expected discounted income if the worker is unemployed and has not yet received an offer (i.e., before the current period's offer is revealed).
+\end{itemize}
+
+\section{Part (a)}
+If the worker accepts a job with salary $w_j$, she (why is ``she''?) will earn $w_j$ indefinitely.
+The total discounted income is an infinite geometric series:
+\[ V(\bar{s}_j) = w_j + \alpha w_j + \alpha^2 w_j + \dots = \sum_{k=0}^\infty \alpha^k w_j = \frac{w_j}{1-\alpha} \]
+
+When being unemployed and offred $w_j$, The worker has two options:
+\begin{enumerate}
+    \item \textbf{Accept $w_j$:} She receives $w_j$ in the current period and transitions to the employed state $\bar{s}_j$
+    in the next period. The total value is $w_j + \alpha V(\bar{s}_j)$. Substituting $V(\bar{s}_j)$:
+    \[ w_j + \alpha \frac{w_j}{1-\alpha} = w_j \left(1 + \frac{\alpha}{1-\alpha}\right) = w_j \left(\frac{1-\alpha+\alpha}{1-\alpha}\right) = \frac{w_j}{1-\alpha} \]
+    \item \textbf{Reject $w_j$:} She receives unemployment benefit $c$ in the current period and remains unemployed,
+    waiting for a new offer in the next period. The total value is $c + \alpha V_U$.
+\end{enumerate}
+Thus, the Bellman equation for $V(s_j)$ is:
+\[ V(s_j) = \max \left( \frac{w_j}{1-\alpha}, \quad c + \alpha V_U \right) \]
+Where $V_U$ is the expected value of $V(s_k)$ over all possible offers $w_k$:
+\[ V_U = \sum_{k=1}^n P(w_k) V(s_k) \]
+Substituting $V(s_k)$:
+\[ V_U = \sum_{k=1}^n P(w_k) \max \left( \frac{w_k}{1-\alpha}, \quad c + \alpha V_U \right) \]
+This is an implicit equation for $V_U$. Due to the monotonicity of the $\max$ function and $\alpha < 1$,
+this equation has a unique fixed-point solution for $V_U$.
+
+The worker will accept the job offer $w_j$ if the value of accepting is greater than or equal to the value of rejecting:
+\[ \frac{w_j}{1-\alpha} \ge c + \alpha V_U \]
+Multiplying both sides by $(1-\alpha)$:
+\[ w_j \ge (1-\alpha)(c + \alpha V_U) \]
+Let $\bar{w} = (1-\alpha)(c + \alpha V_U)$.
+The optimal strategy is to accept a job offer $w_j$ if and only if $w_j \ge \bar{w}$.
+This proves the existence of such a threshold.
+
+\section{Part (b)}
+\subsection*{Case 1: Firing probability $p_i = p$ for all $i$}
+If employed at $w_j$, the worker earns $w_j$ in the current period.
+In the next period, with probability $1-p$, she remains employed at $w_j$,
+and with probability $p$, she is fired and returns to the unemployed state (before receiving a new offer).
+\[ V(\bar{s}_j) = w_j + \alpha \left[ (1-p)V(\bar{s}_j) + p V_U \right] \]
+Solving for $V(\bar{s}_j)$:
+\begin{align*} V(\bar{s}_j) - \alpha(1-p)V(\bar{s}_j) &= w_j + \alpha p V_U \\ V(\bar{s}_j) (1 - \alpha(1-p)) &= w_j + \alpha p V_U \\ V(\bar{s}_j) &= \frac{w_j + \alpha p V_U}{1 - \alpha(1-p)} \end{align*}
+
+The Bellman equation for $V(s_j)$ remains:
+\[ V(s_j) = \max \left( w_j + \alpha V(\bar{s}_j), \quad c + \alpha V_U \right) \]
+
+The worker accepts $w_j$ if $w_j + \alpha V(\bar{s}_j) \ge c + \alpha V_U$.
+Substitute $V(\bar{s}_j)$:
+\begin{align*}
+  w_j + \alpha \frac{w_j + \alpha p V_U}{1 - \alpha(1-p)} &\ge c + \alpha V_U \\
+  w_j \left(1 + \frac{\alpha}{1 - \alpha(1-p)}\right) &\ge c + \alpha V_U - \frac{\alpha^2 p V_U}{1 - \alpha(1-p)} \\
+  w_j \left(\frac{1 - \alpha + \alpha p + \alpha}{1 - \alpha + \alpha p}\right) &\ge c + V_U \left(\frac{\alpha(1 - \alpha + \alpha p) - \alpha^2 p}{1 - \alpha + \alpha p}\right) \\
+  w_j \left(\frac{1 + \alpha p}{1 - \alpha + \alpha p}\right) &\ge c + V_U \left(\frac{\alpha - \alpha^2 + \alpha^2 p - \alpha^2 p}{1 - \alpha + \alpha p}\right) \\
+  w_j \left(\frac{1 + \alpha p}{1 - \alpha + \alpha p}\right) &\ge c + V_U \left(\frac{\alpha(1 - \alpha)}{1 - \alpha + \alpha p}\right) \\
+\end{align*}
+Multiplying both sides by $(1 - \alpha + \alpha p)$:
+\begin{align*}
+  w_j (1 + \alpha p) &\ge c(1 - \alpha + \alpha p) + V_U \alpha(1 - \alpha) \\
+  w_j &\ge \frac{c(1 - \alpha + \alpha p) + V_U \alpha(1 - \alpha)}{1 + \alpha p}
+\end{align*}
+Let $\bar{w}' = \frac{c(1 - \alpha + \alpha p) + V_U \alpha(1 - \alpha)}{1 + \alpha p}$. 
+This $\bar{w}'$ is a constant threshold (once $V_U$ is determined).
+Therefore, the result from part (a) still holds: there exists a single threshold $\bar{w}'$,
+and the worker accepts $w_j$ if and only if $w_j \ge \bar{w}'$. $V_U$ is still determined by its fixed-point equation,
+incorporating the new $V(\bar{s}_k)$.
+
+\subsection*{Case 2: Firing probability $p_i$ depends on $i$}
+The firing probability is now $p_j$, specific to salary $w_j$.
+\[ V(\bar{s}_j) = w_j + \alpha \left[ (1-p_j)V(\bar{s}_j) + p_j V_U \right] \]
+Solving for $V(\bar{s}_j)$:
+\[ V(\bar{s}_j) = \frac{w_j + \alpha p_j V_U}{1 - \alpha(1-p_j)} \]
+$V(s_j)$:
+\[ V(s_j) = \max \left( w_j + \alpha V(\bar{s}_j), \quad c + \alpha V_U \right) \]
+The worker accepts $w_j$ if $w_j + \alpha V(\bar{s}_j) \ge c + \alpha V_U$.
+Substituting $V(\bar{s}_j)$ and performing the same algebraic steps as in Case(a) (replacing $p$ with $p_j$):
+\[ w_j \ge \frac{c(1 - \alpha + \alpha p_j) + V_U \alpha(1 - \alpha)}{1 + \alpha p_j} \]
+Let $RHS_j = \frac{c(1 - \alpha + \alpha p_j) + V_U \alpha(1 - \alpha)}{1 + \alpha p_j}$.
+
+In this case, the condition for accepting an offer $w_j$ is $w_j \ge RHS_j$.
+The critical observation is that $RHS_j$ is no longer a constant threshold.
+Instead, it depends on $p_j$, which is specific to the offer $w_j$. Which implies the decision depends on both salary and job security.
+
+The worker may weigh the offered salary $w_j$ against its associated firing probability $p_j$.
+A high salary $w_j$ with a high $p_j$ might be less attractive than a slightly lower salary $w_k$ with a very low $p_k$.
+The optimal strategy is to accept an offer $w_j$
+if its value $w_j + \alpha V(\bar{s}_j)$ (which incorporates $p_j$) is greater than or equal to the value of continuing to search, $c + \alpha V_U$.
 % 标记最后一页用于总页数计算
 \label{LastPage}
 

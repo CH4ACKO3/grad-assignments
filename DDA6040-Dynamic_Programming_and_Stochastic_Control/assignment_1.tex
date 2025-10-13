@@ -343,7 +343,61 @@ it's straightforward that setting $u_j$ to zero in modified LCA will lead to sta
 But it's also worth noting that setting $u_j=0$ implies that $\delta(j,t)>=0$ for any node $j$,
 which is always true only when arc length $\geq 0$, which is consistent with the conditions for standard LCA.
 
-\chapter{Problem 3: ~}
+\chapter{Problem 3: Object Partition as Shortest Path Problem}
+We can model this problem as finding the shortest path in a directed acyclic graph (DAG).
+Let's construct the graph $G = (V, E)$ as follows:
+\begin{itemize}
+    \item \textbf{Nodes:} We define a set of $N+1$ nodes, $V = \{v_0, v_1, \dots, v_N\}$.
+    Each node $v_k$ represents a potential boundary point in our partition.
+    Specifically, node $v_k$ represents making a partition after the $k$-th object.
+    $v_0$ represents before the 1st object.
+    \item \textbf{Edges:} For every pair $(i, j)$ such that $0 \le i < j \le N$,
+    we draw a directed edge from node $v_i$ to node $v_j$.
+    This edge $(v_i, v_j)$ represents forming a single cluster containing objects $\{i+1, i+2, \dots, j\}$.
+    \item \textbf{Edge Weights:} The weight of edge $(v_i, v_j)$, denoted as $w(v_i, v_j)= a_{i+1, j}$,
+    is the cost of generating the corresponding cluster.
+    \item \textbf{Node Distance:} The distance of node $v_i$, denoted as $d_{v_i}$,
+    can be seen as the minimum cost to generate a valid partition for objects $1~i$.
+    Thus, the distance of node $v_N$ is the minimum cost for partitioning all objects.
+\end{itemize}
+Therefore, the problem of finding the minimum cost grouping is equivalent to finding the \textbf{shortest path}
+from node $v_0$ to node $v_N$ in the constructed graph $G$. We can either solve it using any shortest path algorithm,
+or in a DP style. For the latter, the state transition is:
+\begin{align*}
+  d_{v_i} = \min_{0 \le j < i} \{d_{v_j} + a_{j+1, i}\}
+\end{align*}
+and $d_{v_0} = 0$. Iteration over all nodes $v_1~v_N$ will give the minimum cost for partitioning all objects.
+To recover the actual grouping, one can record the predecessor for each node in shortest-path solution,
+or record the $\arg \min_{j} \{d_{v_j} + a_{j+1, i}\}$ for each $i$ during Iteration.
+
+\begin{algorithm}[H]
+  \caption{Optimal Clustering DP}
+  \label{alg:clustering}
+  \begin{algorithmic}[1]
+  \STATE \textbf{Input:} Number of objects $N$, and costs $a_{ij}$ for $1 \le i \le j \le N$.
+  \STATE \textbf{Output:} The minimum total cost and the corresponding partition.
+  \STATE Initialize arrays $C[0 \dots N]$ and $P[1 \dots N]$.
+  \STATE $C[0] \leftarrow 0$
+  \STATE \textbf{for} $j \leftarrow 1$ \textbf{to} $N$ \textbf{do}
+  \STATE \quad $C[j] \leftarrow \infty$
+  \STATE \quad \textbf{for} $i \leftarrow 0$ \textbf{to} $j-1$ \textbf{do}
+  \STATE \quad \quad \textbf{if} $C[i] + a_{i+1, j} < C[j]$ \textbf{then}
+  \STATE \quad \quad \quad $C[j] \leftarrow C[i] + a_{i+1, j}$
+  \STATE \quad \quad \quad $P[j] \leftarrow i$
+  \STATE \quad \quad \textbf{end if}
+  \STATE \quad \textbf{end for}
+  \STATE \textbf{end for}
+  \STATE \COMMENT{The minimum cost is $C[N]$. Now, reconstruct the clusters.}
+  \STATE Initialize an empty list of clusters.
+  \STATE $j \leftarrow N$
+  \STATE \textbf{while} $j > 0$ \textbf{do}
+  \STATE \quad $i \leftarrow P[j]$
+  \STATE \quad Add cluster $\{i+1, \dots, j\}$ to the clusters.
+  \STATE \quad $j \leftarrow i$
+  \STATE \textbf{end while}
+  \STATE \textbf{return} $C[N]$ and clusters.
+  \end{algorithmic}
+\end{algorithm}
 
 \chapter{Problem 4: ~}
 

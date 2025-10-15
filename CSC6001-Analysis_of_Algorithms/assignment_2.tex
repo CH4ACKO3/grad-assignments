@@ -141,7 +141,7 @@ and $R^{S_i}_A=\{r^{A_x}_y,...\}$ be the set of all rows on $S_i$ that are copie
 \end{proof}
 
 Since we have already shown that all rows on the same server can adopt the same copy strategy,
-we will directly refer to ``replicating $A_i$ to $S$'' below.
+we will directly refer to ``copy $A_i$ to $S$'' below.
 
 \begin{lemma}
   If a server's rows are copied to another, we call it a ``sender'', and vice versa, it's a ``receiver''.
@@ -237,6 +237,43 @@ where the latter can be computed by exponentiation by squaring in $O(\log p)$ ti
 
 The total time complexity includes preprocessing factorials and multiplicative inverses from $1$ to $2n$, which is $O(n)$,
 and counting for each path combination, i.e., the number of combinations for obstacles, which is $O(2^k)$, that sums to $O(n+2^k)$.
+
+\chapter{Problem 3: Array Flipping}
+Obviously, if the length of the reversed contiguous subsegment is odd,
+the final sum will not change (this is because the parity of each number before and after the reversal remains the same).
+When the reversal length is even, i.e., $(r-l+1) \bmod 2= 0$, the increment to the answer will be $\delta = \sum_{i=l, i \bmod 2=1}^r a_i - \sum_{i=l, i \bmod 2=0}^r a_i$.
+Therefore, we want to find the largest increment $\max{\delta}$ over all possible $l$ and $r$.
+
+However, the complexity of naively iterating through $l$ and $r$ is $O(n^2)$. We can achieve a single traversal by splitting the increment $\delta$ into a form separated by $l$ and $r$.
+\begin{align*}
+  \max_{l, r} \delta &= \max_{r} \max_{l} \left( \sum_{i=l, i \bmod 2=1}^r a_i - \sum_{i=l, i \bmod 2=0}^r a_i \right) \\
+  &= \max_{r} \max_{l}  \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=1}^{l-1} a_i \right) - \left( \sum_{i=0, i \bmod 2=0}^r a_i - \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right] \\
+  &= \max_{r} \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=0}^r a_i \right) \max_{l} \left( - \sum_{i=0, i \bmod 2=1}^{l-1} a_i + \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right] \\
+  &= \max_{r} \left[ p_r \min_{l} p_{l-1} \right]
+\end{align*}
+Where $p_i = \sum_{j=0, j \bmod 2=1}^i a_j - \sum_{j=0, j \bmod 2=0}^i a_j$ is the difference of the prefix sum of the numbers with odd indices and even indices,
+which can be pre-processed in $O(n)$ time.
+
+Then, we can iterate through $r$ while recording the $\min p_i$ for even $i$ and odd $i$ separately, and updating the maximum $\delta$ accordingly.
+The time complexity is $O(n)$. Thus the total time complexity is $O(n)$.
+
+\chapter{Problem 4: Cargo Port Assignment}
+We can transform this problem into a classic dynamic programming problem by expanding the unloading schedule of the $i$-th ship into $n$ sub-conditions.
+The scheme is as follows: let the unloading arrangement for the $i$-th ship be that at least $n_i$ days are spent unloading within days $x_i$ to $y_i$.
+We can expand this to: for $j \in [x_i, y_i]$, within days $x_i$ to $j$, at least $\max \left(0, j-(y_i-n_i)\right)$ days are spent unloading.
+
+Therefore, we denote $dp(i)$ as the minimum number of unloading days required up to day $i$ (inclusive).
+The state transition is:
+\[ dp(j) = \max_{i, j \in [x_i, y_i]} \left\{ dp(x_i-1) + \max \left(0, j-(y_i-n_i)\right) \right\} \]
+This requires that when $dp(j)$ is used, it has already been calculated (and will not be updated hereafter).
+We can guarantee this by sorting all ships by $x_i$ and processing them in order.
+
+It should be noted that whenever the case of a ship $i$ is processed, we also need to update $dp(j)$ for $j \in [x_{i-1}, x_i-1]$:
+\[ dp(j) = \max \left( dp(j-1), dp(j) \right) \]
+To ensure that the ans before $x_{i}$ is correct.
+
+Since we need to update all ships a total of $\sum(n_i) = O(L\max(y))$ times (Equation 1), and post-process the states before all $y_i$ for $O(\max(y))$ (Equation 2),
+and also pre-sort all ships for $O(L\log L)$, the final time complexity will be $O(L\max(y) + L\log L)$.
 
 % 标记最后一页用于总页数计算
 \label{LastPage}

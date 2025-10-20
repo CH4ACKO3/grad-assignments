@@ -1,0 +1,638 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[outputdir=tex]{minted}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, positioning, calc, arrows.meta}
+\usepackage{tikzpagenodes}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除“Chapter”字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Machine Learning - Assignment 2}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+% ===== 列表格式 =====
+% 设置所有itemize环境的格式
+\setlist[itemize]{
+    leftmargin=1em,      % 左边距
+    itemsep=0.2em,       % 项目间距
+    topsep=0.3em,        % 列表前后间距
+    parsep=0.2em,        % 段落间距
+    label=-    % 项目符号
+}
+\setlist[enumerate]{
+    leftmargin=1em,      % 左边距
+    itemsep=0.2em,       % 项目间距
+    topsep=0.3em,        % 列表前后间距
+    parsep=0.2em,        % 段落间距
+}
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+    \maketitle
+    \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+    \begin{KeepFromToc} % 将目录本身排除在目录之外
+        \tableofcontents
+    \end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Problem 1: Backpropagation for a MLP}
+Given a MLP defined as follows:
+\begin{align*}
+    \boldsymbol{x} & \in \mathbb{R}^D                                                                  \\
+    \boldsymbol{z} & = \mathbf{W}\boldsymbol{x} + \boldsymbol{b}_1 \in \mathbb{R}^K                    \\
+    \boldsymbol{h} & = \text{ReLU}(\boldsymbol{z}) \in \mathbb{R}^K                                    \\
+    \boldsymbol{a} & = \mathbf{V}\boldsymbol{h} + \boldsymbol{b}_2 \in \mathbb{R}^C                    \\
+    \mathcal{L}    & = \text{CrossEntropy}(\boldsymbol{y}, \mathcal{S}(\boldsymbol{a})) \in \mathbb{R}
+\end{align*}
+and the gradients of the loss with respect to logits $a$ and hidden $z$:
+\begin{align*}
+    \boldsymbol{u}_2 & = \nabla_{\boldsymbol{a}} \mathcal{L} = (\boldsymbol{p}-\boldsymbol{y}) \in \mathbb{R}^C                         \\
+    \boldsymbol{u}_1 & = \nabla_{\boldsymbol{z}} \mathcal{L} = (\mathbf{V}^\top \boldsymbol{u}_2) \odot H(\boldsymbol{z}) \in \mathbb{R}^K
+\end{align*}
+Then, we can derive the gradients for the parameters $\mathbf{V}, \boldsymbol{b}_2, \mathbf{W}, \boldsymbol{b}_1$
+and the input $\boldsymbol{x}$ using the chain rule (Hereafter we always use the numerator layout):
+
+\begin{align*}
+    \nabla_{\mathbf{V}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{V}} \right]_{1,:}
+     & = \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+\end{align*}
+Where we know $\partial \mathcal{L} /\partial \boldsymbol{a} = \boldsymbol{u}_2^\top \in \mathbb{R}^{1\times C}$.
+For $\partial \boldsymbol{a} / \partial \mathbf{V}$, we can expand it according to definition:
+\begin{align*}
+    \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} =
+    \begin{pmatrix}
+        \frac{\partial a_1}{\partial \mathbf{V}} \\
+        \vdots                                   \\
+        \frac{\partial a_C}{\partial \mathbf{V}}
+    \end{pmatrix} \in \mathbb{R}^{C \times (C \times K)}
+\end{align*}
+Note that $a_c=\sum_{k=1}^{K} V_{ck} h_k + {b_2}_c$, thus:
+\begin{align*}
+    \frac{\partial a_c}{\partial V_{ij}} = \sum_{k=1}^{K} \frac{\partial}{\partial V_{ij}} V_{ck} h_k = \sum_{k=1}^{K} h_k \mathbb{I}(i=c,j=k)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial \boldsymbol{a}}{\partial V_{ij}} =
+    \begin{pmatrix}
+        0 & \cdots & 0 & h_j & 0 & \cdots & 0 \\
+    \end{pmatrix}^\top \in \mathbb{R}^{C \times 1}
+\end{align*}
+Where the non-zero element is at the $i$-th position.
+Thus,
+\begin{align*}
+    \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial V_{ij}} = {u_2}_i h_j
+\end{align*}
+Thus,
+\begin{align*}
+    \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+    = \left[ \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+    = \boldsymbol{u}_2 \boldsymbol{h}^\top \in \mathbb{R}^{C \times K}
+\end{align*}
+We can do exactly the same thing for $\mathbf{W}$:
+\begin{align*}
+    \nabla_{\mathbf{W}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{W}} \right]_{1,:}
+    = \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
+    = \left[ \boldsymbol{u}_1^\top \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
+    = \boldsymbol{u}_1 \boldsymbol{x}^\top \in \mathbb{R}^{K \times D}
+\end{align*}
+This is because $\boldsymbol{z}=\mathbf{W}\boldsymbol{x}+\boldsymbol{b}_1$ and
+$\boldsymbol{a}=\mathbf{V}\boldsymbol{h}+\boldsymbol{b}_2$ are identical in form.
+
+For $\boldsymbol{b}_1$ and $\boldsymbol{b}_2$, the derivation would be:
+\begin{align*}
+    \nabla_{\boldsymbol{b}_2} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{b}_2} \right)^\top
+    = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \boldsymbol{b}_2} \right)^\top
+    = \boldsymbol{u}_2 \in \mathbb{R}^{C}
+\end{align*}
+Where $\partial \boldsymbol{a} / \partial \boldsymbol{b}_2 = \mathbb{I} \in \mathbb{R}^{C \times C}$.
+We can do exactly the same for $\boldsymbol{b}_1$ and get $\nabla_{\boldsymbol{b}_1} \mathcal{L} = \boldsymbol{u}_1 \in \mathbb{R}^{C}$.
+
+For $\boldsymbol{x}$, the derivation would be:
+\begin{align*}
+    \nabla_{\boldsymbol{x}} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{x}} \right)^\top
+    = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} \right)^\top
+    = \left( \boldsymbol{u}_1^\top \mathbf{W} \right)^\top
+    = \mathbf{W}^\top \boldsymbol{u}_1 \in \mathbb{R}^{D}
+\end{align*}
+Where
+\begin{align*}
+    \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} =
+    \begin{pmatrix}
+        \frac{\partial z_1}{\partial x_1} & \cdots & \frac{\partial z_1}{\partial x_D} \\
+        \vdots                            & \ddots & \vdots                            \\
+        \frac{\partial z_K}{\partial x_1} & \cdots & \frac{\partial z_K}{\partial x_D}
+    \end{pmatrix} = \mathbf{W}
+\end{align*}
+Because
+\begin{align*}
+    \frac{\partial z_i}{\partial x_j} = \frac{\partial}{\partial x_j} (\sum_{k=1}^{K} W_{ik} x_k + {b_1}_i)= W_{ij}
+\end{align*}
+
+\chapter{Problem 2: Gradient derivation for two-layer neural network}
+\section*{(a) Gradient of $E$ wrt $\boldsymbol{z}_2$}
+Use the chain rule:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_2} = \frac{\partial E}{\partial \hat{\boldsymbol{o}}} \frac{\partial \hat{\boldsymbol{o}}}{\partial \boldsymbol{z}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{z}_2)_j} = \sum_{i=1}^{K} \frac{\partial E}{\partial (\hat{\boldsymbol{o}}_i)} \frac{\partial (\hat{\boldsymbol{o}}_i)}{\partial (\boldsymbol{z}_2)_j}
+\end{align*}
+Where the derivative of $E$ wrt to $\hat{\boldsymbol{o}}_i$ is:
+\begin{align*}
+    \frac{\partial E}{\partial (\hat{\boldsymbol{o}}_i)} = \frac{\partial}{\partial (\hat{\boldsymbol{o}}_i)} \left( -\sum_{k=1}^{K} \boldsymbol{o}_k \log(\hat{\boldsymbol{o}}_k) \right) = -\frac{\boldsymbol{o}_i}{\hat{\boldsymbol{o}}_i}
+\end{align*}
+And the derivative of $\hat{\boldsymbol{o}}_i$ wrt to $(\boldsymbol{z}_2)_j$ is:
+\begin{align*}
+    \frac{\partial (\hat{\boldsymbol{o}}_i)}{\partial (\boldsymbol{z}_2)_j} = \frac{\partial}{\partial (\boldsymbol{z}_2)_j} \left( \text{softmax}(\boldsymbol{z}_2) \right)_i = \frac{\partial}{\partial (\boldsymbol{z}_2)_j} \left( \frac{\exp((\boldsymbol{z}_2)_i)}{\sum_{k=1}^{K} \exp((\boldsymbol{z}_2)_k)} \right) = \hat{\boldsymbol{o}}_i(\mathbb{I}(i=j) - \hat{\boldsymbol{o}}_j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{z}_2)_j} &= \sum_{i=1}^{K} -\frac{\boldsymbol{o}_i}{\hat{\boldsymbol{o}}_i} \hat{\boldsymbol{o}}_i(\mathbb{I}(i=j) - \hat{\boldsymbol{o}}_j) \\
+    &= -\boldsymbol{o}_j (1 - \hat{\boldsymbol{o}}_j) + \sum_{i \neq j} \boldsymbol{o}_i \hat{\boldsymbol{o}}_j \\
+    &= -\boldsymbol{o}_j + \hat{\boldsymbol{o}}_j \sum_{i=1}^{K} \boldsymbol{o}_i \\
+    &= \hat{\boldsymbol{o}}_j - \boldsymbol{o}_j \quad (\text{Since} \sum_i \boldsymbol{o}_i = 1)
+\end{align*}
+Thus, the vector form is:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_2} =
+    \begin{pmatrix}
+        \frac{\partial E}{\partial (\boldsymbol{z}_2)_1} \\
+        \vdots \\
+        \frac{\partial E}{\partial (\boldsymbol{z}_2)_K}
+    \end{pmatrix} =
+    \begin{pmatrix}
+        \hat{\boldsymbol{o}}_1 - \boldsymbol{o}_1 \\
+        \vdots \\
+        \hat{\boldsymbol{o}}_K - \boldsymbol{o}_K
+    \end{pmatrix} =
+    \hat{\boldsymbol{o}} - \boldsymbol{o}
+    \tikzmark{mark1}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark1) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+
+\section*{(b) Gradient of $E$ wrt $\mathbf{W}_2$ and $\boldsymbol{b}_2$}
+Similarly, we can use the chain rule:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_2} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \mathbf{W}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\mathbf{W}_2)_{ij}} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\mathbf{W}_2)_{ij}}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\mathbf{W}_2)_{ij}$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\mathbf{W}_2)_{ij}} = \frac{\partial}{\partial (\mathbf{W}_2)_{ij}} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = \boldsymbol{h}_j \mathbb{I}(k=i,l=j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\mathbf{W}_2)_{ij}} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \boldsymbol{h}_j \mathbb{I}(k=i,l=j) \\
+    &= (\hat{\boldsymbol{o}}_i - \boldsymbol{o}_i) \boldsymbol{h}_j \\
+    \frac{\partial E}{\partial \mathbf{W}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o}) \boldsymbol{h}^\top
+    \tikzmark{mark2}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark2) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+For $\boldsymbol{b}_2$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{b}_2} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \boldsymbol{b}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{b}_2)_j} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{b}_2)_j}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\boldsymbol{b}_2)_j$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{b}_2)_j} = \frac{\partial}{\partial (\boldsymbol{b}_2)_j} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = \mathbb{I}(k=j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{b}_2)_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \mathbb{I}(k=j) \\
+    &= (\hat{\boldsymbol{o}}_j - \boldsymbol{o}_j) \\
+    \frac{\partial E}{\partial \boldsymbol{b}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o})
+    \tikzmark{mark3}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark3) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+
+\section*{(c) Gradient of $E$ wrt $\boldsymbol{h}$ and $\boldsymbol{z}_1$}
+Similarly:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{h}} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \boldsymbol{h}}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{h})_j} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{h})_j}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\boldsymbol{h})_j$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{h})_j} = \frac{\partial}{\partial (\boldsymbol{h})_j} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = (\mathbf{W}_2)_{kj}
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{h})_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) (\mathbf{W}_2)_{kj} \\
+    \frac{\partial E}{\partial \boldsymbol{h}} &= \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o})
+    \tikzmark{mark4}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark4) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+For $\boldsymbol{z}_1$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_1} = \frac{\partial E}{\partial \boldsymbol{h}} \frac{\partial \boldsymbol{h}}{\partial \boldsymbol{z}_1} = 
+    \frac{\partial E}{\partial \boldsymbol{h}} \odot \text{ReLU}'(\boldsymbol{z}_1) = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+    \tikzmark{mark5}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark5) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+
+\section*{(d) Gradient of $E$ wrt $\boldsymbol{W}_1$ and $\boldsymbol{b}_1$}
+Similarly:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_1} = \frac{\partial E}{\partial \boldsymbol{z}_1} \frac{\partial \boldsymbol{z}_1}{\partial \mathbf{W}_1}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{W}_1)_{ij}} = \sum_{k=1}^{d} \frac{\partial E}{\partial (\boldsymbol{z}_1)_k} \frac{\partial (\boldsymbol{z}_1)_k}{\partial (\boldsymbol{W}_1)_{ij}}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_1$ wrt to $(\boldsymbol{W}_1)_{ij}$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_1)_k}{\partial (\boldsymbol{W}_1)_{ij}} = \frac{\partial}{\partial (\boldsymbol{W}_1)_{ij}} \left( \sum_{l=1}^{n} (\mathbf{W}_1)_{kl} \boldsymbol{x}_l + \boldsymbol{b_1}_k \right) = \boldsymbol{x}_j \mathbb{I}(k=i,l=j)
+\end{align*}
+Similar to $\partial E / \partial \mathbf{W}_2$, This results in an outer product of the upstream gradient $\frac{\partial E}{\partial \boldsymbol{z}_1}$ and the input to the layer, $\boldsymbol{x}$:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_1} = \left[ \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0) \right] \boldsymbol{x}^\top
+    \tikzmark{mark6}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark6) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+For $\boldsymbol{b}_1$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{b}_1} = \frac{\partial E}{\partial \boldsymbol{z}_1} \frac{\partial \boldsymbol{z}_1}{\partial \boldsymbol{b}_1} = 
+    \frac{\partial E}{\partial \boldsymbol{z}_1} \mathbf{I} = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+    \tikzmark{mark7}
+\end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark7) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
+
+\chapter{Problem 3: Convolutional Neural Network}
+\section*{(a) Activation Volume Dimensions and Number of Parameters}
+The formula for the output dimension of a convolutional or pooling layer is:
+\[ O = \lfloor \frac{W_{in} - F + 2P}{S} \rfloor + 1 \]
+where $W_{in}$ is the input dimension, $F$ is the filter/pool size, $P$ is padding, and $S$ is stride.
+The number of parameters for each layer type is:
+\begin{itemize}
+    \item Convolutional Layer (CONV): $(F \times F \times D_{in} + 1) \times D_{out}$
+    \item Pooling Layer (POOL): 0 parameters
+    \item Fully-Connected Layer (FC): $(N_{in} + 1) \times N_{out}$, where $N_{in}$ is the total number of input neurons after flattening
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Layer & Activation Volume Dimensions & Number of Parameters \\
+\midrule
+INPUT & $32 \times 32 \times 1$ & 0 \\
+CONV5-10 & $32 \times 32 \times 10$ & $(5 \times 5 \times 1 + 1) \times 10 = 260$ \\
+POOL2 & $16 \times 16 \times 10$ & 0 \\
+CONV5-10 & $16 \times 16 \times 10$ & $(5 \times 5 \times 10 + 1) \times 10 = 2,510$ \\
+POOL2 & $8 \times 8 \times 10$ & 0 \\
+FC-10 & $10$ & $(8 \times 8 \times 10 + 1) \times 10 = 6,410$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{(b) Reason for using a 1x1 Convolution}
+Less rigorously, we say convolutional neural networks process input in two ways:
+\begin{itemize}
+    \item \textbf{spatial operations}, which capture spatial patterns between adjacent pixels, such as edges or textures, through receptive fields;
+    \item \textbf{channel operations}, used to identify information such as colors in RGB space.
+\end{itemize}
+In the original convolutional neural network architecture, these two were simultaneously processed by the conv layer;
+however, in ``depthwise separable convolution'', they are decoupled and such architectures have been proven to be faster and more efficient.
+
+From this perspective, a $1 \times 1$ convolution is equivalent to independently processing channel information without changing spatial information,
+and is often used in conjunction with its complement, i.e., a ``receptive field'' network that only processes spatial information and does not involve channel information.
+Intuitively, if two components of a statistical distribution are (to some extent) independent, it will be easier to handle them separately,
+and the use of $1 \times 1$ convolution is consistent with such intuition.
+
+As a result, for a layer with $D_{\text{out}}$ output dimensions,
+the number of parameters required for ``depthwise separable convolution'' is only about $1/D_{\text{out}}$ of the original,
+without damaging (or even improving) the performance.
+
+\chapter{Problem 4: CNNs and Vision Transformers}
+\begin{enumerate}[itemsep=1em]
+    \item \textbf{What are the two main operations used in CNNs to process images?}: \\
+        \textbf{B. Convolution and pooling}. 
+    \item \textbf{Why do Vision Transformers (ViTs) need positional encodings?}: \\
+        \textbf{B. To remember where each image patch came from}. 
+    \item \textbf{Which architecture typically works better with small datasets?}: \\
+        \textbf{B. CNN}. \\
+        CNN possess strong inductive biases, such as local receptive fields and weight sharing.
+        These biases enable CNN to effectively learn meaningful locality features with a relatively smaller number of parameters.
+        This generally leads to better performance for CNN on small datasets compared to ViT,
+        while the later typically require large amounts of data to learn effective representations and reduce overfitting
+        induced by global attention mechanism. (As an evidence, some follow-up work attempts to add regularization to pixel distance
+        and claims performance improvements.)
+    \item \textbf{Patch Processing: An image of size 224 $\times$ 224 is divided into 16 $\times$ 16 patches for a Vision Transformer.
+    \textbf{(1)} How many patches will there be? \textbf{(2)} If each patch is flattened into a vector, what will be its length
+    for an RGB image?}: \\
+        \textbf{(1)} There will be $(224 // 16) \times (224 // 16) = 14 \times 14 = 196$ patches. \\
+        \textbf{(2)} The length of each patch will be $16 \times 16 \times 3 = 768$ for an RGB image.
+    \item \textbf{For each feature below, indicate whether it applies to}: \\
+        \textbf{(1) Processes image patches in sequential order}: (V) or (N) \\
+            Although ViT divides pixels into patches and processes them in a ``sequential fashion'',
+            it is less appropriate to call it ``sequential order'' because all patches are simultaneously fed into the attention layer for computation,
+            and there is no logical order between patches. Most ViT are discriminative models, so they are non-causal during training (no causal mask),
+            but some generative ViT are indeed trained causally and are ``sequential'' during generation. \\
+        \textbf{(2) Can handle patches in parallel fashion}: (B) \\
+        \textbf{(3) Uses weight sharing across spatial locations}: (C) or (B) \\
+            There's no doubt about CNN's spatial weight sharing, but for ViT, this concept is more ambiguous.
+            The weight matrices ($\mathbf{W}_q$, $\mathbf{W}_k$, $\mathbf{W}_v$) for different patches are shared,
+            while the patches are distributed across different spatial locations.
+            Furthermore, within each patch, the parameters of the linear layers are also shared.
+            Although for pixels at certain specific positions in the input,
+            the weights they ``see'' may not be the same (e.g., within the same patch, the parameters for two different positions are different),
+            and most positional encodings introduce some spatial bias. But at least during training, this heterogeneity can be reduced through spatial augmentation operations
+            or by using true ``relative'' positional encodings. \\
+        \textbf{(4) Requires positional encoding of patches}: (V) \\
+        \textbf{(5) Naturally preserves local spatial relationships}: (C) \\
+        \textbf{(6) Naturally preserves global spatial relationships}: (V) \\
+\end{enumerate}
+
+\chapter{Problem 5: Using Backpropagation for GANs}
+\section*{(1) Reason for objective $L(\theta_d, \theta_g)$}
+The objective function for the discriminator is given by:
+\begin{align*}
+L (\theta_d, \theta_g) &= \frac{1}{n}\sum_{i=1}^{n} \log D(X^i) + \log \left( 1 - D(G(Z^i)) \right)
+\end{align*}
+Given the discriminator acts as a binary classifier. $D(X^i)$ is the probability of the sample $X^i$ being real.
+For a real sample $X^i$, the discriminator wants to maximize $D(X^i)$, which maximizes $\log D(X^i)$.
+For a fake sample $G(Z^i)$, the discriminator wants to classify it as fake, meaning minimizing $D(G(Z^i))$, which in turn maximizes $\log (1 - D(G(Z^i)))$.
+
+Since the objective function $L$ is a sum of these terms, maximizing $L$ corresponds to correctly classifying both real and fake samples,
+which is the discriminator's goal. This is analogous to the cross-entropy loss used in binary classification,
+where minimizing the negative log-likelihood is equivalent to maximizing the likelihood.
+ 
+\section*{(2) $\nabla_{\theta_d} L(\boldsymbol{X}; \theta_d, \theta_g)$ in terms of $\nabla_{\theta_d}D(.)$}
+We need to compute $\nabla_{\theta_d} L (\theta_d, \theta_g)$.
+Let $D_i^{(real)} = D(X^i; \theta_d)$ and $D_i^{(fake)} = D(G(Z^i); \theta_d)$.
+The objective function is
+\begin{align*}
+L (\theta_d, \theta_g) &= \frac{1}{n}\sum_{i=1}^{n} \left[ \log D_i^{(real)} + \log (1 - D_i^{(fake)}) \right]
+\end{align*}
+Taking the gradient with respect to $\theta_d$:
+\begin{align*}
+\nabla_{\theta_d} L (\theta_d, \theta_g) &= \frac{1}{n}\sum_{i=1}^{n} \left[ \nabla_{\theta_d} \log D_i^{(real)} + \nabla_{\theta_d} \log (1 - D_i^{(fake)}) \right] \\
+&= \frac{1}{n}\sum_{i=1}^{n} \left[ \frac{1}{D_i^{(real)}} \nabla_{\theta_d} D_i^{(real)} + \frac{1}{1 - D_i^{(fake)}} \left( - \nabla_{\theta_d} D_i^{(fake)} \right) \right] \\
+&= \frac{1}{n}\sum_{i=1}^{n} \left[ \frac{\nabla_{\theta_d} D(X^i; \theta_d)}{D(X^i; \theta_d)} - \frac{\nabla_{\theta_d} D(G(Z^i); \theta_d)}{1 - D(G(Z^i); \theta_d)} \right]
+\end{align*}
+
+\section*{(3) $\partial L(\theta_d, \theta_g) / \partial z^{L_d}_d$}
+Let $A^{L_d}_d = D(\cdot; \theta_d)$ be the output of the discriminator. Given that the last layer activation is a sigmoid function, $A^{L_d}_d = \sigma(z^{L_d}_d)$.
+We need to compute $\frac{\partial L (\theta_d, \theta_g)}{\partial z^{L_d}_d}$. Let's consider a single sample $X^i$ and $G(Z^i)$.
+\begin{align*}
+\frac{\partial L}{\partial z^{L_d}_d} &= \frac{1}{n}\sum_{i=1}^{n} \left[ \frac{\partial \log D(X^i; \theta_d)}{\partial z^{L_d}_d} + \frac{\partial \log (1 - D(G(Z^i); \theta_d))}{\partial z^{L_d}_d} \right] \\
+&= \frac{1}{n}\sum_{i=1}^{n} \left[ \frac{1}{D(X^i; \theta_d)} \frac{\partial D(X^i; \theta_d)}{\partial z^{L_d}_d(X^i)} + \frac{1}{1 - D(G(Z^i); \theta_d)} \left( - \frac{\partial D(G(Z^i); \theta_d)}{\partial z^{L_d}_d(G(Z^i))} \right) \right]
+\end{align*}
+Since $D(\cdot; \theta_d) = \sigma(z^{L_d}_d)$, we have $\frac{\partial D}{\partial z^{L_d}_d} = \frac{\partial \sigma(z^{L_d}_d)}{\partial z^{L_d}_d} = \sigma(z^{L_d}_d)(1 - \sigma(z^{L_d}_d)) = D(1 - D)$.
+Substituting this into the expression, for each sample:
+\begin{align*}
+    \left. \frac{\partial L}{\partial z^{L_d}_d} \right|_{X^i} &= \frac{1}{D(X^i; \theta_d)} D(X^i; \theta_d) (1 - D(X^i; \theta_d)) = 1 - D(X^i; \theta_d) \\
+    \left. \frac{\partial L}{\partial z^{L_d}_d} \right|_{Z^i} &= \frac{-1}{1 - D(G(Z^i); \theta_d)} D(G(Z^i); \theta_d) (1 - D(G(Z^i); \theta_d)) = -D(G(Z^i); \theta_d)
+\end{align*}
+Combining these:
+\begin{align*}
+    \frac{\partial L (\theta_d, \theta_g)}{\partial z^{L_d}_d} &= \frac{1}{n}\sum_{i=1}^{n} \left[ (1 - D(X^i; \theta_d)) - D(G(Z^i); \theta_d) \right]
+\end{align*}
+This formula treats the gradient with respect to $z^{L_d}_d$ abstractly, summing over contributions from both real and fake data.
+
+\section*{(4) Recursive breakdown of $\partial L(\theta_d, \theta_g) / \partial z_d^{L_d}$}
+For a given layer $l < L_d$, the pre-activation $z^{l+1}_d = \mathbf{W}^{l+1}_d A^l_d$, and activation $A^l_d = g^l_d(z^l_d)$.
+We want to express $\frac{\partial L (\theta_d, \theta_g)}{\partial z^l_d}$
+in terms of $\frac{\partial L(\theta_d,\theta_g)}{\partial z^{l+1}_d}$.
+Using the chain rule:
+\begin{align*}
+\frac{\partial L}{\partial z^l_d} &= \frac{\partial L}{\partial z^{l+1}_d} \frac{\partial z^{l+1}_d}{\partial z^l_d}
+\end{align*}
+Firstly: 
+\begin{align*}
+\frac{\partial z^{l+1}_d}{\partial z^l_d} &= \frac{\partial (\mathbf{W}^{l+1}_d A^l_d)}{\partial z^l_d} \\
+&= \mathbf{W}^{l+1}_d \frac{\partial A^l_d}{\partial z^l_d}
+\end{align*}
+Since $A^l_d = g^l_d(z^l_d)$, the derivative $\frac{\partial A^l_d}{\partial z^l_d}$ is a diagonal matrix where the diagonal entries are the derivatives of the activation function for each element of $z^l_d$. Let $(g^l_d)'(z^l_d)$ denote this diagonal matrix.
+Thus, we have $\frac{\partial z^{l+1}_d}{\partial z^l_d} = \mathbf{W}^{l+1}_d (g^l_d)'(z^l_d)$.
+Substituting this back:
+\begin{align*}
+\frac{\partial L (\theta_d, \theta_g)}{\partial z^l_d} &=  \frac{\partial L(\theta_d,\theta_g)}{\partial z^{l+1}_d} \mathbf{W}^{l+1}_d (g^l_d)'(z^l_d)
+\end{align*}
+Where we insist with the numerator layout, and thus gradients are row vectors.
+
+\section*{(5) $\partial L(\theta_d, \theta_g) / \partial g(z_i; \theta_g)$ in terms of $w^1_d$ and $\partial L(\theta_d, \theta_g) / \partial z^1_d$}
+Let $G_i = G(Z^i; \theta_g)$ be the output of the generator for input noise $Z^i$.
+We want to compute $\frac{\partial L (\theta_d, \theta_g)}{\partial G_i}$ for a specific generated sample $G_i$.
+The pre-activation of the first layer of the discriminator for a given input $G_i$ is $z^1_d(G_i) = \mathbf{W}^1_d G_i$.
+Using the chain rule, we have:
+\begin{align*}
+    \frac{\partial L(\theta_d, \theta_g)}{\partial G_i} &= \frac{\partial L(\theta_d, \theta_g)}{\partial z^1_d(G_i)} \frac{\partial z^1_d(G_i)}{\partial G_i} \\
+    &= \frac{\partial L(\theta_d, \theta_g)}{\partial z^1_d(G_i)} \frac{\partial (\mathbf{W}^1_d G_i)}{\partial G_i} \\
+    &= \frac{\partial L(\theta_d, \theta_g)}{\partial z^1_d(G_i)} \mathbf{W}^1_d \frac{\partial G_i}{\partial G_i} \\
+    &= \frac{\partial L(\theta_d, \theta_g)}{\partial z^1_d(G(Z^i; \theta_g))} \mathbf{W}^1_d \quad (\frac{\partial G_i}{\partial G_i} = \mathbf{I}) 
+\end{align*}
+
+\section*{(6) $\nabla_{\theta_g} L(\theta_d, \theta_g)$ in terms of $\nabla_{\theta_g} G(Z^i; \theta_g)$}
+The objective function only depends on $\theta_g$ via $G(Z^i; \theta_g)$.
+\begin{align*}
+\nabla_{\theta_g} L (\theta_d, \theta_g) &= \nabla_{\theta_g} \frac{1}{n}\sum_{i=1}^{n} \left[ \log D(X^i; \theta_d) + \log (1 - D(G(Z^i; \theta_g); \theta_d)) \right] \\
+&= \frac{1}{n}\sum_{i=1}^{n} \nabla_{\theta_g} \left[ \log (1 - D(G(Z^i; \theta_g); \theta_d)) \right] \\
+&= \frac{1}{n}\sum_{i=1}^{n} \frac{\partial L(\theta_d, \theta_g)}{\partial G(Z^i; \theta_g)} \nabla_{\theta_g} G(Z^i; \theta_g) \\
+&= \frac{1}{n}\sum_{i=1}^{n} \frac{\partial L(\theta_d, \theta_g)}{\partial z^1_d(G(Z^i; \theta_g))} \mathbf{W}^1_d \nabla_{\theta_g} G(Z^i; \theta_g)
+\end{align*}
+
+\section*{(7) mini-batch gradient descent update for $\theta_d$}
+The discriminator is optimized to maximize the objective function. So its update rule is for gradient ascent.
+\begin{align*}
+\theta^{t+1}_d &= \theta^t_d + \alpha \nabla_{\theta_d} L (\theta^t_d, \theta^t_g)
+\end{align*}
+
+\section*{(8) mini-batch gradient descent update for $\theta_g$}
+The generator is optimized to minimize the objective function. So its update rule is for gradient descent.
+\begin{align*}
+\theta^{t+1}_g &= \theta^t_g - \alpha \nabla_{\theta_g} L (\theta^t_d, \theta^t_g)
+\end{align*}
+
+\chapter{Programming I: CNN Implementation}
+For the CIFAR-10 challenge, a convolutional neural network that achieved over 81\% accuracy on the test set is implemented.
+The model architecture incorporates several modern deep learning techniques to improve performance.
+
+\section*{Architecture Design}
+The advanced model consists of four main components:
+
+\begin{enumerate}
+    \item \textbf{Deep Convolutional Layers}: Four convolutional blocks with increasing channel depth (64→128→256→512 channels)
+    \item \textbf{Batch Normalization}: Applied after each convolutional layer to stabilize training and improve convergence
+    \item \textbf{Max Pooling}: Applied after each conv block to reduce spatial dimensions (32→16→8→4→2)
+    \item \textbf{Multi-layer Fully Connected Network}: Three FC layers (1024→512→10) with dropout regularization
+\end{enumerate}
+
+\section*{Key Technical Features}
+\textbf{Batch Normalization}: Each convolutional layer is followed by batch normalization, which:
+\begin{itemize}
+    \item Normalizes inputs to each layer, reducing internal covariate shift
+    \item Allows higher learning rates and faster convergence
+    \item Acts as a regularizer, reducing the need for dropout in convolutional layers
+\end{itemize}
+
+\textbf{Dropout Regularization}: Applied in fully connected layers with a rate of 0.5 to prevent overfitting while maintaining model capacity.
+
+\textbf{Proper Weight Initialization}: 
+\begin{itemize}
+    \item Kaiming normal initialization for convolutional and linear layers
+    \item Prevents vanishing/exploding gradient problems
+\end{itemize}
+
+\section*{Training Optimizations}
+\textbf{Adam Optimizer}: Used instead of SGD for better convergence with:
+\begin{itemize}
+    \item Learning rate: 0.001
+    \item Weight decay: 1e-4 (L2 regularization)
+    \item Adaptive learning rates for each parameter
+\end{itemize}
+
+\textbf{Training Strategy}: The model was trained for 10 epochs, achieving:
+\begin{itemize}
+    \item Validation accuracy: 81.4\% (exceeding the 70\% requirement)
+    \item Test accuracy: 81.46\%
+    \item Consistent performance across validation and test sets
+\end{itemize}
+
+\chapter{Programming II: Attention Mechanism}
+We implement the scaled dot-product attention mechanism equivalent to the following:
+\begin{minted}[
+    frame=single,
+    framesep=2mm,
+    bgcolor=lightgray!10,
+    fontsize=\tiny,
+    fontfamily=courier,
+    style=friendly,
+]{python}
+def scaled_dot_product_attention(query, key, value, attn_mask=None, dropout_p=0.0):
+    "Compute 'Inefficient Scaled Dot Product Attention'"
+    L, S = query.size(-2), key.size(-2)
+    scale_factor = 1 / math.sqrt(query.size(-1))
+    attn_bias = torch.zeros(L, S, dtype=query.dtype, device=query.device)
+
+    if attn_mask is not None:
+        if attn_mask.dtype == torch.bool:
+            attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+        else:
+            attn_bias = attn_mask + attn_bias
+
+    attn_weight = query @ key.transpose(-2, -1) * scale_factor
+    attn_weight += attn_bias
+    attn_weight = torch.softmax(attn_weight, dim=-1)
+    attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+    return attn_weight @ value
+\end{minted}
+
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}

@@ -90,11 +90,11 @@
 
 % ===== 标题页 & 目录 =====
 \begin{titlingpage}
-\maketitle
-\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
-\begin{KeepFromToc} % 将目录本身排除在目录之外
-\tableofcontents
-\end{KeepFromToc}
+  \maketitle
+  \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+  \begin{KeepFromToc} % 将目录本身排除在目录之外
+    \tableofcontents
+  \end{KeepFromToc}
 \end{titlingpage}
 
 % ===== 章节模板 =====
@@ -103,12 +103,12 @@ Let's first elaborate on the form of the optimal solution, and then prove it.
 The optimal solution will have the following form:
 \begin{enumerate}
   \item For any server, all rows of info on it will have the same copying strategy
-  (that is, two rows of info will not be copied to different servers);
+        (that is, two rows of info will not be copied to different servers);
   \item Rows of info will either only be copied from A to B, or only from B to A;
   \item For the cluster that receives info in 1, there will be at most one ``hub'',
-  that is, it receives info from other servers in the same cluster. The sender cluster will not have such a hub;
+        that is, it receives info from other servers in the same cluster. The sender cluster will not have such a hub;
   \item For each server in the receiving cluster that does not send its own info to the hub (including the hub itself),
-  it will receive info from every server in the sender (the other cluster).
+        it will receive info from every server in the sender (the other cluster).
 \end{enumerate}
 
 \section{Proof of Optimality}
@@ -213,8 +213,8 @@ then the answer is $|A_0|-|\bigcup_{i=1}^{k} A_i|$.
 
 Using the principle of inclusion-exclusion, $\bigcup_{i=1}^{k} A_i$ can be expressed as:
 \begin{align*}
-  \left|\bigcup_{i=1}^{k} A_i\right| &= \sum_{i=1}^{k} |A_i| - \sum_{1 \le i < j \le k} |A_i \cap A_j| + \sum_{1 \le i < j < l \le k} |A_i \cap A_j \cap A_l| - \cdots + (-1)^{k+1} |A_1 \cap A_2 \cap \cdots \cap A_k| \\
-  &= \sum_{m=1}^{k}\left(-1\right)^{m-1}\sum_{a_i<a_{i+1}}\left| \bigcap_{i=1}^{m} A_{a_i} \right|
+  \left|\bigcup_{i=1}^{k} A_i\right| & = \sum_{i=1}^{k} |A_i| - \sum_{1 \le i < j \le k} |A_i \cap A_j| + \sum_{1 \le i < j < l \le k} |A_i \cap A_j \cap A_l| - \cdots + (-1)^{k+1} |A_1 \cap A_2 \cap \cdots \cap A_k| \\
+                                     & = \sum_{m=1}^{k}\left(-1\right)^{m-1}\sum_{a_i<a_{i+1}}\left| \bigcap_{i=1}^{m} A_{a_i} \right|
 \end{align*}
 
 In which, $A_{a_1}\cap A_{a_2}\cap ...\cap A_{a_m}$ is the path that passes through obstacles $a_1~a_m$ simultaneously.
@@ -246,10 +246,10 @@ Therefore, we want to find the largest increment $\max{\delta}$ over all possibl
 
 However, the complexity of naively iterating through $l$ and $r$ is $O(n^2)$. We can achieve a single traversal by splitting the increment $\delta$ into a form separated by $l$ and $r$.
 \begin{align*}
-  \max_{l, r} \delta &= \max_{r} \max_{l} \left( \sum_{i=l, i \bmod 2=1}^r a_i - \sum_{i=l, i \bmod 2=0}^r a_i \right) \\
-  &= \max_{r} \max_{l}  \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=1}^{l-1} a_i \right) - \left( \sum_{i=0, i \bmod 2=0}^r a_i - \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right] \\
-  &= \max_{r} \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=0}^r a_i \right) \max_{l} \left( - \sum_{i=0, i \bmod 2=1}^{l-1} a_i + \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right] \\
-  &= \max_{r} \left[ p_r \min_{l} p_{l-1} \right]
+  \max_{l, r} \delta & = \max_{r} \max_{l} \left( \sum_{i=l, i \bmod 2=1}^r a_i - \sum_{i=l, i \bmod 2=0}^r a_i \right)                                                                                                        \\
+                     & = \max_{r} \max_{l}  \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=1}^{l-1} a_i \right) - \left( \sum_{i=0, i \bmod 2=0}^r a_i - \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right] \\
+                     & = \max_{r} \left[ \left( \sum_{i=0, i \bmod 2=1}^r a_i - \sum_{i=0, i \bmod 2=0}^r a_i \right) \max_{l} \left( - \sum_{i=0, i \bmod 2=1}^{l-1} a_i + \sum_{i=0, i \bmod 2=0}^{l-1} a_i \right) \right]  \\
+                     & = \max_{r} \left[ p_r \min_{l} p_{l-1} \right]
 \end{align*}
 Where $p_i = \sum_{j=0, j \bmod 2=1}^i a_j - \sum_{j=0, j \bmod 2=0}^i a_j$ is the difference of the prefix sum of the numbers with odd indices and even indices,
 which can be pre-processed in $O(n)$ time.

@@ -1,0 +1,19 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{scaled\PYGZus{}dot\PYGZus{}product\PYGZus{}attention}\PYG{p}{(}\PYG{n}{query}\PYG{p}{,} \PYG{n}{key}\PYG{p}{,} \PYG{n}{value}\PYG{p}{,} \PYG{n}{attn\PYGZus{}mask}\PYG{o}{=}\PYG{k+kc}{None}\PYG{p}{,} \PYG{n}{dropout\PYGZus{}p}\PYG{o}{=}\PYG{l+m+mf}{0.0}\PYG{p}{):}
+    \PYG{l+s+s2}{\PYGZdq{}Compute \PYGZsq{}Inefficient Scaled Dot Product Attention\PYGZsq{}\PYGZdq{}}
+    \PYG{n}{L}\PYG{p}{,} \PYG{n}{S} \PYG{o}{=} \PYG{n}{query}\PYG{o}{.}\PYG{n}{size}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{2}\PYG{p}{),} \PYG{n}{key}\PYG{o}{.}\PYG{n}{size}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{2}\PYG{p}{)}
+    \PYG{n}{scale\PYGZus{}factor} \PYG{o}{=} \PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{math}\PYG{o}{.}\PYG{n}{sqrt}\PYG{p}{(}\PYG{n}{query}\PYG{o}{.}\PYG{n}{size}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{))}
+    \PYG{n}{attn\PYGZus{}bias} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{L}\PYG{p}{,} \PYG{n}{S}\PYG{p}{,} \PYG{n}{dtype}\PYG{o}{=}\PYG{n}{query}\PYG{o}{.}\PYG{n}{dtype}\PYG{p}{,} \PYG{n}{device}\PYG{o}{=}\PYG{n}{query}\PYG{o}{.}\PYG{n}{device}\PYG{p}{)}
+
+    \PYG{k}{if} \PYG{n}{attn\PYGZus{}mask} \PYG{o+ow}{is} \PYG{o+ow}{not} \PYG{k+kc}{None}\PYG{p}{:}
+        \PYG{k}{if} \PYG{n}{attn\PYGZus{}mask}\PYG{o}{.}\PYG{n}{dtype} \PYG{o}{==} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{bool}\PYG{p}{:}
+            \PYG{n}{attn\PYGZus{}bias}\PYG{o}{.}\PYG{n}{masked\PYGZus{}fill\PYGZus{}}\PYG{p}{(}\PYG{n}{attn\PYGZus{}mask}\PYG{o}{.}\PYG{n}{logical\PYGZus{}not}\PYG{p}{(),} \PYG{n+nb}{float}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}inf\PYGZdq{}}\PYG{p}{))}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n}{attn\PYGZus{}bias} \PYG{o}{=} \PYG{n}{attn\PYGZus{}mask} \PYG{o}{+} \PYG{n}{attn\PYGZus{}bias}
+
+    \PYG{n}{attn\PYGZus{}weight} \PYG{o}{=} \PYG{n}{query} \PYG{o}{@} \PYG{n}{key}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)} \PYG{o}{*} \PYG{n}{scale\PYGZus{}factor}
+    \PYG{n}{attn\PYGZus{}weight} \PYG{o}{+=} \PYG{n}{attn\PYGZus{}bias}
+    \PYG{n}{attn\PYGZus{}weight} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{softmax}\PYG{p}{(}\PYG{n}{attn\PYGZus{}weight}\PYG{p}{,} \PYG{n}{dim}\PYG{o}{=\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{attn\PYGZus{}weight} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{dropout}\PYG{p}{(}\PYG{n}{attn\PYGZus{}weight}\PYG{p}{,} \PYG{n}{dropout\PYGZus{}p}\PYG{p}{,} \PYG{n}{train}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{attn\PYGZus{}weight} \PYG{o}{@} \PYG{n}{value}
+\end{Verbatim}

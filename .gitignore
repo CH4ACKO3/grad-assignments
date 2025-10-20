@@ -174,3 +174,8 @@ desktop.ini
 *.lof
 *.lot
 *.lof
+# Minted generated files
+_minted*/
+*.minted
+*.pygstyle
+*.pygtex

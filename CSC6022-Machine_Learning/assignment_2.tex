@@ -82,6 +82,21 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
 
+% ===== 列表格式 =====
+% 设置所有itemize环境的格式
+\setlist[itemize]{
+    leftmargin=1em,      % 左边距
+    itemsep=0.2em,       % 项目间距
+    topsep=0.3em,        % 列表前后间距
+    parsep=0.2em,        % 段落间距
+    label=-    % 项目符号
+}
+\setlist[enumerate]{
+    leftmargin=1em,      % 左边距
+    itemsep=0.2em,       % 项目间距
+    topsep=0.3em,        % 列表前后间距
+    parsep=0.2em,        % 段落间距
+}
 \begin{document}
 
 % ===== 标题页 & 目录 =====
@@ -356,8 +371,90 @@ For $\boldsymbol{b}_1$, the derivation would be:
 }
 
 \chapter{Problem 3: Convolutional Neural Network}
+\section*{(a) Activation Volume Dimensions and Number of Parameters}
+The formula for the output dimension of a convolutional or pooling layer is:
+\[ O = \lfloor \frac{W_{in} - F + 2P}{S} \rfloor + 1 \]
+where $W_{in}$ is the input dimension, $F$ is the filter/pool size, $P$ is padding, and $S$ is stride.
+The number of parameters for each layer type is:
+\begin{itemize}
+    \item Convolutional Layer (CONV): $(F \times F \times D_{in} + 1) \times N_{filters}$
+    \item Pooling Layer (POOL): 0 parameters
+    \item Fully-Connected Layer (FC): $(N_{in} + 1) \times N_{out}$
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Layer & Activation Volume Dimensions & Number of Parameters \\
+\midrule
+INPUT & $32 \times 32 \times 1$ & 0 \\
+CONV5-10 & $28 \times 28 \times 10$ & $(5 \times 5 \times 1 + 1) \times 10 = 260$ \\
+POOL2 & $14 \times 14 \times 10$ & 0 \\
+CONV5-10 & $10 \times 10 \times 10$ & $(5 \times 5 \times 10 + 1) \times 10 = 2,510$ \\
+POOL2 & $5 \times 5 \times 10$ & 0 \\
+FC-10 & $10 \times 1$ & $(5 \times 5 \times 10 + 1) \times 10 = 2,510$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{(b) Reason for using a 1x1 Convolution}
+Less rigorously, we say convolutional neural networks process input in two ways:
+\begin{itemize}
+    \item \textbf{spatial operations}, which capture spatial patterns between adjacent pixels, such as edges or textures, through receptive fields;
+    \item \textbf{channel operations}, used to identify information such as colors in RGB space.
+\end{itemize}
+In the original convolutional neural network architecture, these two were simultaneously processed by the conv layer;
+however, in ``depthwise separable convolution'', they are decoupled and such architectures have been proven to be faster and more efficient.
+
+From this perspective, a $1 \times 1$ convolution is equivalent to independently processing channel information without changing spatial information,
+and is often used in conjunction with its complement, i.e., a ``receptive field'' network that only processes spatial information and does not involve channel information.
+Intuitively, if two components of a statistical distribution are (to some extent) independent, it will be easier to handle them separately,
+and the use of $1 \times 1$ convolution is consistent with such intuition.
+
+As a result, for a layer with $D_{\text{out}}$ output dimensions,
+the number of parameters required for ``depthwise separable convolution'' is only about $1/D_{\text{out}}$ of the original,
+without damaging (or even improving) the performance.
 
 \chapter{Problem 4: CNNs and Vision Transformers}
+\begin{enumerate}[itemsep=1em]
+    \item \textbf{What are the two main operations used in CNNs to process images?}: \\
+        \textbf{B. Convolution and pooling}. 
+    \item \textbf{Why do Vision Transformers (ViTs) need positional encodings?}: \\
+        \textbf{B. To remember where each image patch came from}. 
+    \item \textbf{Which architecture typically works better with small datasets?}: \\
+        \textbf{B. CNN}. \\
+        CNN possess strong inductive biases, such as local receptive fields and weight sharing.
+        These biases enable CNN to effectively learn meaningful locality features with a relatively smaller number of parameters.
+        This generally leads to better performance for CNN on small datasets compared to ViT,
+        while the later typically require large amounts of data to learn effective representations and reduce overfitting
+        induced by global attention mechanism. (As an evidence, some follow-up work attempts to add regularization to pixel distance
+        and claims performance improvements.)
+    \item \textbf{Patch Processing: An image of size 224 $\times$ 224 is divided into 16 $\times$ 16 patches for a Vision Transformer.
+    \textbf{(1)} How many patches will there be? \textbf{(2)} If each patch is flattened into a vector, what will be its length
+    for an RGB image?}: \\
+        \textbf{(1)} There will be $(224 // 16) \times (224 // 16) = 14 \times 14 = 196$ patches. \\
+        \textbf{(2)} The length of each patch will be $16 \times 16 \times 3 = 768$ for an RGB image.
+    \item \textbf{For each feature below, indicate whether it applies to}: \\
+        \textbf{(1) Processes image patches in sequential order}: (V) or (N) \\
+            Although ViT divides pixels into patches and processes them in a ``sequential fashion'',
+            it is less appropriate to call it ``sequential order'' because all patches are simultaneously fed into the attention layer for computation,
+            and there is no logical order between patches. Most ViT are discriminative models, so they are non-causal during training (no causal mask),
+            but some generative ViT are indeed trained causally and are ``sequential'' during generation. \\
+        \textbf{(2) Can handle patches in parallel fashion}: (B) \\
+        \textbf{(3) Uses weight sharing across spatial locations}: (C) or (B) \\
+            There's no doubt about CNN's spatial weight sharing, but for ViT, this concept is more ambiguous.
+            The weight matrices ($\mathbf{W}_q$, $\mathbf{W}_k$, $\mathbf{W}_v$) for different patches are shared,
+            while the patches are distributed across different spatial locations.
+            Furthermore, within each patch, the parameters of the linear layers are also shared.
+            Although for pixels at certain specific positions in the input,
+            the weights they ``see'' may not be the same (e.g., within the same patch, the parameters for two different positions are different),
+            and most positional encodings introduce some spatial bias. But at least during training, this heterogeneity can be reduced through spatial augmentation operations
+            or by using true ``relative'' positional encodings. \\
+        \textbf{(4) Requires positional encoding of patches}: (V) \\
+        \textbf{(5) Naturally preserves local spatial relationships}: (C) \\
+        \textbf{(6) Naturally preserves global spatial relationships}: (V) \\
+\end{enumerate}
 
 \chapter{Problem 5: Using Backpropagation for GANs}
 

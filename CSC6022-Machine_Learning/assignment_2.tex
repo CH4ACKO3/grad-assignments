@@ -84,105 +84,105 @@
 
 % ===== 标题页 & 目录 =====
 \begin{titlingpage}
-\maketitle
-\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
-\begin{KeepFromToc} % 将目录本身排除在目录之外
-\tableofcontents
-\end{KeepFromToc}
+    \maketitle
+    \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+    \begin{KeepFromToc} % 将目录本身排除在目录之外
+        \tableofcontents
+    \end{KeepFromToc}
 \end{titlingpage}
 
 % ===== 章节模板 =====
 \chapter{Problem 1: Backpropagation for a MLP}
 Given a MLP defined as follows:
 \begin{align*}
-  \boldsymbol{x} &\in \mathbb{R}^D \\
-  \boldsymbol{z} &= \mathbf{W}\boldsymbol{x} + \boldsymbol{b}_1 \in \mathbb{R}^K \\
-  \boldsymbol{h} &= \text{ReLU}(\boldsymbol{z}) \in \mathbb{R}^K \\
-  \boldsymbol{a} &= \mathbf{V}\boldsymbol{h} + \boldsymbol{b}_2 \in \mathbb{R}^C \\
-  \mathcal{L} &= \text{CrossEntropy}(\boldsymbol{y}, \mathcal{S}(\boldsymbol{a})) \in \mathbb{R}
+    \boldsymbol{x} & \in \mathbb{R}^D                                                                  \\
+    \boldsymbol{z} & = \mathbf{W}\boldsymbol{x} + \boldsymbol{b}_1 \in \mathbb{R}^K                    \\
+    \boldsymbol{h} & = \text{ReLU}(\boldsymbol{z}) \in \mathbb{R}^K                                    \\
+    \boldsymbol{a} & = \mathbf{V}\boldsymbol{h} + \boldsymbol{b}_2 \in \mathbb{R}^C                    \\
+    \mathcal{L}    & = \text{CrossEntropy}(\boldsymbol{y}, \mathcal{S}(\boldsymbol{a})) \in \mathbb{R}
 \end{align*}
 and the gradients of the loss with respect to logits $a$ and hidden $z$:
 \begin{align*}
-  \boldsymbol{u}_2 &= \nabla_{\boldsymbol{a}} \mathcal{L} = (\boldsymbol{p}-\boldsymbol{y}) \in \mathbb{R}^C \\
-  \boldsymbol{u}_1 &= \nabla_{\boldsymbol{z}} \mathcal{L} = (\mathbf{V}^T \boldsymbol{u}_2) \odot H(\boldsymbol{z}) \in \mathbb{R}^K
+    \boldsymbol{u}_2 & = \nabla_{\boldsymbol{a}} \mathcal{L} = (\boldsymbol{p}-\boldsymbol{y}) \in \mathbb{R}^C                         \\
+    \boldsymbol{u}_1 & = \nabla_{\boldsymbol{z}} \mathcal{L} = (\mathbf{V}^T \boldsymbol{u}_2) \odot H(\boldsymbol{z}) \in \mathbb{R}^K
 \end{align*}
 Then, we can derive the gradients for the parameters $\mathbf{V}, \boldsymbol{b}_2, \mathbf{W}, \boldsymbol{b}_1$
 and the input $\boldsymbol{x}$ using the chain rule (Hereafter we always use the numerator layout):
 
 \begin{align*}
-  \nabla_{\mathbf{V}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{V}} \right]_{1,:}
-  &= \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+    \nabla_{\mathbf{V}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{V}} \right]_{1,:}
+     & = \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
 \end{align*}
 Where we know $\partial \mathcal{L} /\partial \boldsymbol{a} = \boldsymbol{u}_2^\top \in \mathbb{R}^{1\times C}$.
 For $\partial \boldsymbol{a} / \partial \mathbf{V}$, we can expand it according to definition:
 \begin{align*}
-  \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} = 
-  \begin{pmatrix}
-    \frac{\partial a_1}{\partial \mathbf{V}} \\
-    \vdots \\
-    \frac{\partial a_C}{\partial \mathbf{V}}
-  \end{pmatrix} \in \mathbb{R}^{C \times (C \times K)}
+    \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} =
+    \begin{pmatrix}
+        \frac{\partial a_1}{\partial \mathbf{V}} \\
+        \vdots                                   \\
+        \frac{\partial a_C}{\partial \mathbf{V}}
+    \end{pmatrix} \in \mathbb{R}^{C \times (C \times K)}
 \end{align*}
 Note that $a_c=\sum_{k=1}^{K} V_{ck} h_k + {b_2}_c$, thus:
 \begin{align*}
-  \frac{\partial a_c}{\partial V_{ij}} = \sum_{k=1}^{K} \frac{\partial}{\partial V_{ij}} V_{ck} h_k = \sum_{k=1}^{K} h_k \mathbb{I}(i=c,j=k)
+    \frac{\partial a_c}{\partial V_{ij}} = \sum_{k=1}^{K} \frac{\partial}{\partial V_{ij}} V_{ck} h_k = \sum_{k=1}^{K} h_k \mathbb{I}(i=c,j=k)
 \end{align*}
 Thus,
 \begin{align*}
-  \frac{\partial \boldsymbol{a}}{\partial V_{ij}} =
-  \begin{pmatrix}
-    0 & \cdots & 0 & h_j & 0 & \cdots & 0 \\
-  \end{pmatrix}^\top \in \mathbb{R}^{C \times 1}
+    \frac{\partial \boldsymbol{a}}{\partial V_{ij}} =
+    \begin{pmatrix}
+        0 & \cdots & 0 & h_j & 0 & \cdots & 0 \\
+    \end{pmatrix}^\top \in \mathbb{R}^{C \times 1}
 \end{align*}
 Where the non-zero element is at the $i$-th position.
 Thus,
 \begin{align*}
-  \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial V_{ij}} = {u_2}_i h_j
+    \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial V_{ij}} = {u_2}_i h_j
 \end{align*}
 Thus,
 \begin{align*}
-  \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
-  = \left[ \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
-  = \boldsymbol{u}_2 \boldsymbol{h}^\top \in \mathbb{R}^{C \times K}
+    \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+    = \left[ \boldsymbol{u}_2^\top \frac{\partial \boldsymbol{a}}{\partial \mathbf{V}} \right]_{1,:}
+    = \boldsymbol{u}_2 \boldsymbol{h}^\top \in \mathbb{R}^{C \times K}
 \end{align*}
 We can do exactly the same thing for $\mathbf{W}$:
 \begin{align*}
-  \nabla_{\mathbf{W}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{W}} \right]_{1,:}
-  = \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
-  = \left[ \boldsymbol{u}_1^\top \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
-  = \boldsymbol{u}_1 \boldsymbol{x}^\top \in \mathbb{R}^{K \times D}
+    \nabla_{\mathbf{W}} \mathcal{L} = \left[ \frac{\partial \mathcal{L}}{\partial \mathbf{W}} \right]_{1,:}
+    = \left[ \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
+    = \left[ \boldsymbol{u}_1^\top \frac{\partial \boldsymbol{z}}{\partial \mathbf{W}} \right]_{1,:}
+    = \boldsymbol{u}_1 \boldsymbol{x}^\top \in \mathbb{R}^{K \times D}
 \end{align*}
 This is because $\boldsymbol{z}=\mathbf{W}\boldsymbol{x}+\boldsymbol{b}_1$ and
 $\boldsymbol{a}=\mathbf{V}\boldsymbol{h}+\boldsymbol{b}_2$ are identical in form.
 
 For $\boldsymbol{b}_1$ and $\boldsymbol{b}_2$, the derivation would be:
 \begin{align*}
-  \nabla_{\boldsymbol{b}_2} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{b}_2} \right)^\top
-  = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \boldsymbol{b}_2} \right)^\top
-  = \boldsymbol{u}_2 \in \mathbb{R}^{C}
+    \nabla_{\boldsymbol{b}_2} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{b}_2} \right)^\top
+    = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{a}} \frac{\partial \boldsymbol{a}}{\partial \boldsymbol{b}_2} \right)^\top
+    = \boldsymbol{u}_2 \in \mathbb{R}^{C}
 \end{align*}
 Where $\partial \boldsymbol{a} / \partial \boldsymbol{b}_2 = \mathbb{I} \in \mathbb{R}^{C \times C}$.
 We can do exactly the same for $\boldsymbol{b}_1$ and get $\nabla_{\boldsymbol{b}_1} \mathcal{L} = \boldsymbol{u}_1 \in \mathbb{R}^{C}$.
 
 For $\boldsymbol{x}$, the derivation would be:
 \begin{align*}
-  \nabla_{\boldsymbol{x}} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{x}} \right)^\top
-  = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} \right)^\top
-  = \left( \boldsymbol{u}_1^\top \mathbf{W} \right)^\top
-  = \mathbf{W}^\top \boldsymbol{u}_1 \in \mathbb{R}^{D}
+    \nabla_{\boldsymbol{x}} \mathcal{L} = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{x}} \right)^\top
+    = \left( \frac{\partial \mathcal{L}}{\partial \boldsymbol{z}} \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} \right)^\top
+    = \left( \boldsymbol{u}_1^\top \mathbf{W} \right)^\top
+    = \mathbf{W}^\top \boldsymbol{u}_1 \in \mathbb{R}^{D}
 \end{align*}
 Where
 \begin{align*}
-  \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} =
-  \begin{pmatrix}
-    \frac{\partial z_1}{\partial x_1} & \cdots & \frac{\partial z_1}{\partial x_D} \\
-    \vdots & \ddots & \vdots \\
-    \frac{\partial z_K}{\partial x_1} & \cdots & \frac{\partial z_K}{\partial x_D}
-  \end{pmatrix} = \mathbf{W}
+    \frac{\partial \boldsymbol{z}}{\partial \boldsymbol{x}} =
+    \begin{pmatrix}
+        \frac{\partial z_1}{\partial x_1} & \cdots & \frac{\partial z_1}{\partial x_D} \\
+        \vdots                            & \ddots & \vdots                            \\
+        \frac{\partial z_K}{\partial x_1} & \cdots & \frac{\partial z_K}{\partial x_D}
+    \end{pmatrix} = \mathbf{W}
 \end{align*}
 Because
 \begin{align*}
-  \frac{\partial z_i}{\partial x_j} = \frac{\partial}{\partial x_j} (\sum_{k=1}^{K} W_{ik} x_k + {b_1}_i)= W_{ij}
+    \frac{\partial z_i}{\partial x_j} = \frac{\partial}{\partial x_j} (\sum_{k=1}^{K} W_{ik} x_k + {b_1}_i)= W_{ij}
 \end{align*}
 
 \chapter{Problem 2: Gradient derivation for a two-layer neural network}

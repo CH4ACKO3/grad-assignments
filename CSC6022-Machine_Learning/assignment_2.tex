@@ -463,21 +463,31 @@ without damaging (or even improving) the performance.
 
 \chapter{Programming II: Attention Mechanism}
 We implement the scaled dot-product attention mechanism equivalent to the following:
-\begin{minted}[linenos]{python}
-def attention(query, key, value, mask=None, dropout=None):
-    "Compute 'Scaled Dot Product Attention'"
+\begin{minted}[
+    frame=single,
+    framesep=2mm,
+    bgcolor=lightgray!10,
+    fontsize=\tiny,
+    fontfamily=courier,
+    style=friendly,
+]{python}
+def scaled_dot_product_attention(query, key, value, attn_mask=None, dropout_p=0.0):
+    "Compute 'Inefficient Scaled Dot Product Attention'"
     L, S = query.size(-2), key.size(-2)
     scale_factor = 1 / math.sqrt(query.size(-1))
     attn_bias = torch.zeros(L, S, dtype=query.dtype, device=query.device)
-    if mask.dtype == torch.bool:
-        attn_bias.masked_fill_(mask.logical_not(), float("-inf"))
-    else:
-        attn_bias = mask + attn_bias
+
+    if attn_mask is not None:
+        if attn_mask.dtype == torch.bool:
+            attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+        else:
+            attn_bias = attn_mask + attn_bias
+
     attn_weight = query @ key.transpose(-2, -1) * scale_factor
     attn_weight += attn_bias
     attn_weight = torch.softmax(attn_weight, dim=-1)
-    attn_weight = dropout(attn_weight)
-    return attn_weight @ value, attn_weight
+    attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+    return attn_weight @ value
 \end{minted}
 % 标记最后一页用于总页数计算
 \label{LastPage}

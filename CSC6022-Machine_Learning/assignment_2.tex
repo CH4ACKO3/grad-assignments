@@ -15,6 +15,8 @@
 % 图表包
 \usepackage{graphicx}
 \usepackage{tikz}
+\usetikzlibrary{positioning, calc}
+\usepackage{tikzpagenodes}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
@@ -186,6 +188,130 @@ Because
 \end{align*}
 
 \chapter{Problem 2: Gradient derivation for a two-layer neural network}
+\section*{(a) Gradient of $E$ wrt $\boldsymbol{z}_2$}
+Use the chain rule:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_2} = \frac{\partial E}{\partial \hat{\boldsymbol{o}}} \frac{\partial \hat{\boldsymbol{o}}}{\partial \boldsymbol{z}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{z}_2)_j} = \sum_{i=1}^{K} \frac{\partial E}{\partial (\hat{\boldsymbol{o}}_i)} \frac{\partial (\hat{\boldsymbol{o}}_i)}{\partial (\boldsymbol{z}_2)_j}
+\end{align*}
+Where the derivative of $E$ wrt to $\hat{\boldsymbol{o}}_i$ is:
+\begin{align*}
+    \frac{\partial E}{\partial (\hat{\boldsymbol{o}}_i)} = \frac{\partial}{\partial (\hat{\boldsymbol{o}}_i)} \left( -\sum_{k=1}^{K} \boldsymbol{o}_k \log(\hat{\boldsymbol{o}}_k) \right) = -\frac{\boldsymbol{o}_i}{\hat{\boldsymbol{o}}_i}
+\end{align*}
+And the derivative of $\hat{\boldsymbol{o}}_i$ wrt to $(\boldsymbol{z}_2)_j$ is:
+\begin{align*}
+    \frac{\partial (\hat{\boldsymbol{o}}_i)}{\partial (\boldsymbol{z}_2)_j} = \frac{\partial}{\partial (\boldsymbol{z}_2)_j} \left( \text{softmax}(\boldsymbol{z}_2) \right)_i = \frac{\partial}{\partial (\boldsymbol{z}_2)_j} \left( \frac{\exp((\boldsymbol{z}_2)_i)}{\sum_{k=1}^{K} \exp((\boldsymbol{z}_2)_k)} \right) = \hat{\boldsymbol{o}}_i(\mathbb{I}(i=j) - \hat{\boldsymbol{o}}_j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{z}_2)_j} &= \sum_{i=1}^{K} -\frac{\boldsymbol{o}_i}{\hat{\boldsymbol{o}}_i} \hat{\boldsymbol{o}}_i(\mathbb{I}(i=j) - \hat{\boldsymbol{o}}_j) \\
+    &= -\boldsymbol{o}_j (1 - \hat{\boldsymbol{o}}_j) + \sum_{i \neq j} \boldsymbol{o}_i \hat{\boldsymbol{o}}_j \\
+    &= -\boldsymbol{o}_j + \hat{\boldsymbol{o}}_j \sum_{i=1}^{K} \boldsymbol{o}_i \\
+    &= \hat{\boldsymbol{o}}_j - \boldsymbol{o}_j \quad (\text{Since} \sum_i \boldsymbol{o}_i = 1)
+\end{align*}
+Thus, the vector form is:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_2} =
+    \begin{pmatrix}
+        \frac{\partial E}{\partial (\boldsymbol{z}_2)_1} \\
+        \vdots \\
+        \frac{\partial E}{\partial (\boldsymbol{z}_2)_K}
+    \end{pmatrix} =
+    \begin{pmatrix}
+        \hat{\boldsymbol{o}}_1 - \boldsymbol{o}_1 \\
+        \vdots \\
+        \hat{\boldsymbol{o}}_K - \boldsymbol{o}_K
+    \end{pmatrix} =
+    \hat{\boldsymbol{o}} - \boldsymbol{o}
+\end{align*}
+
+\section*{(b) Gradient of $E$ wrt $\mathbf{W}_2$ and $\boldsymbol{b}_2$}
+Similarly, we can use the chain rule:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_2} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \mathbf{W}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\mathbf{W}_2)_{ij}} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\mathbf{W}_2)_{ij}}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\mathbf{W}_2)_{ij}$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\mathbf{W}_2)_{ij}} = \frac{\partial}{\partial (\mathbf{W}_2)_{ij}} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = \boldsymbol{h}_j \mathbb{I}(k=i,l=j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\mathbf{W}_2)_{ij}} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \boldsymbol{h}_j \mathbb{I}(k=i,l=j) \\
+    &= (\hat{\boldsymbol{o}}_i - \boldsymbol{o}_i) \boldsymbol{h}_j \\
+    \frac{\partial E}{\partial \mathbf{W}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o}) \boldsymbol{h}^\top
+\end{align*}
+For $\boldsymbol{b}_2$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{b}_2} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \boldsymbol{b}_2}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{b}_2)_j} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{b}_2)_j}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\boldsymbol{b}_2)_j$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{b}_2)_j} = \frac{\partial}{\partial (\boldsymbol{b}_2)_j} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = \mathbb{I}(k=j)
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{b}_2)_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \mathbb{I}(k=j) \\
+    &= (\hat{\boldsymbol{o}}_j - \boldsymbol{o}_j) \\
+    \frac{\partial E}{\partial \boldsymbol{b}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o})
+\end{align*}
+
+\section*{(c) Gradient of $E$ wrt $\boldsymbol{h}$ and $\boldsymbol{z}_1$}
+Similarly:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{h}} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \boldsymbol{h}}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{h})_j} = \sum_{k=1}^{K} \frac{\partial E}{\partial (\boldsymbol{z}_2)_k} \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{h})_j}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_2$ wrt to $(\boldsymbol{h})_j$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_2)_k}{\partial (\boldsymbol{h})_j} = \frac{\partial}{\partial (\boldsymbol{h})_j} \left( \sum_{l=1}^{d} (\mathbf{W}_2)_{kl} \boldsymbol{h}_l + \boldsymbol{b_2}_k \right) = (\mathbf{W}_2)_{kj}
+\end{align*}
+Thus,
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{h})_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) (\mathbf{W}_2)_{kj} \\
+    \frac{\partial E}{\partial \boldsymbol{h}} &= \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o})
+\end{align*}
+For $\boldsymbol{z}_1$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{z}_1} = \frac{\partial E}{\partial \boldsymbol{h}} \frac{\partial \boldsymbol{h}}{\partial \boldsymbol{z}_1} = 
+    \frac{\partial E}{\partial \boldsymbol{h}} \odot \text{ReLU}'(\boldsymbol{z}_1) = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+\end{align*}
+
+\section*{(d) Gradient of $E$ wrt $\boldsymbol{W}_1$ and $\boldsymbol{b}_1$}
+Similarly:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_1} = \frac{\partial E}{\partial \boldsymbol{z}_1} \frac{\partial \boldsymbol{z}_1}{\partial \mathbf{W}_1}
+\end{align*}
+Which can be expanded as:
+\begin{align*}
+    \frac{\partial E}{\partial (\boldsymbol{W}_1)_{ij}} = \sum_{k=1}^{d} \frac{\partial E}{\partial (\boldsymbol{z}_1)_k} \frac{\partial (\boldsymbol{z}_1)_k}{\partial (\boldsymbol{W}_1)_{ij}}
+\end{align*}
+Where the derivative of $\boldsymbol{z}_1$ wrt to $(\boldsymbol{W}_1)_{ij}$ is:
+\begin{align*}
+    \frac{\partial (\boldsymbol{z}_1)_k}{\partial (\boldsymbol{W}_1)_{ij}} = \frac{\partial}{\partial (\boldsymbol{W}_1)_{ij}} \left( \sum_{l=1}^{n} (\mathbf{W}_1)_{kl} \boldsymbol{x}_l + \boldsymbol{b_1}_k \right) = \boldsymbol{x}_j \mathbb{I}(k=i,l=j)
+\end{align*}
+Similar to $\partial E / \partial \mathbf{W}_2$, This results in an outer product of the upstream gradient $\frac{\partial E}{\partial \boldsymbol{z}_1}$ and the input to the layer, $\boldsymbol{x}$:
+\begin{align*}
+    \frac{\partial E}{\partial \mathbf{W}_1} = \left[ \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0) \right] \boldsymbol{x}^\top
+\end{align*}
+For $\boldsymbol{b}_1$, the derivation would be:
+\begin{align*}
+    \frac{\partial E}{\partial \boldsymbol{b}_1} = \frac{\partial E}{\partial \boldsymbol{z}_1} \frac{\partial \boldsymbol{z}_1}{\partial \boldsymbol{b}_1} = 
+    \frac{\partial E}{\partial \boldsymbol{z}_1} \mathbf{I} = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+\end{align*}
 
 \chapter{Problem 3: Convolutional Neural Network}
 

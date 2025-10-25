@@ -15,7 +15,7 @@
 % 图表包
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{positioning, calc}
+\usetikzlibrary{tikzmark, positioning, calc, arrows.meta}
 \usepackage{tikzpagenodes}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
@@ -187,7 +187,7 @@ Because
     \frac{\partial z_i}{\partial x_j} = \frac{\partial}{\partial x_j} (\sum_{k=1}^{K} W_{ik} x_k + {b_1}_i)= W_{ij}
 \end{align*}
 
-\chapter{Problem 2: Gradient derivation for a two-layer neural network}
+\chapter{Problem 2: Gradient derivation for two-layer neural network}
 \section*{(a) Gradient of $E$ wrt $\boldsymbol{z}_2$}
 Use the chain rule:
 \begin{align*}
@@ -226,7 +226,13 @@ Thus, the vector form is:
         \hat{\boldsymbol{o}}_K - \boldsymbol{o}_K
     \end{pmatrix} =
     \hat{\boldsymbol{o}} - \boldsymbol{o}
+    \tikzmark{mark1}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark1) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 
 \section*{(b) Gradient of $E$ wrt $\mathbf{W}_2$ and $\boldsymbol{b}_2$}
 Similarly, we can use the chain rule:
@@ -246,7 +252,13 @@ Thus,
     \frac{\partial E}{\partial (\mathbf{W}_2)_{ij}} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \boldsymbol{h}_j \mathbb{I}(k=i,l=j) \\
     &= (\hat{\boldsymbol{o}}_i - \boldsymbol{o}_i) \boldsymbol{h}_j \\
     \frac{\partial E}{\partial \mathbf{W}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o}) \boldsymbol{h}^\top
+    \tikzmark{mark2}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark2) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 For $\boldsymbol{b}_2$, the derivation would be:
 \begin{align*}
     \frac{\partial E}{\partial \boldsymbol{b}_2} = \frac{\partial E}{\partial \boldsymbol{z}_2} \frac{\partial \boldsymbol{z}_2}{\partial \boldsymbol{b}_2}
@@ -264,7 +276,13 @@ Thus,
     \frac{\partial E}{\partial (\boldsymbol{b}_2)_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) \mathbb{I}(k=j) \\
     &= (\hat{\boldsymbol{o}}_j - \boldsymbol{o}_j) \\
     \frac{\partial E}{\partial \boldsymbol{b}_2} &= (\hat{\boldsymbol{o}} - \boldsymbol{o})
+    \tikzmark{mark3}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark3) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 
 \section*{(c) Gradient of $E$ wrt $\boldsymbol{h}$ and $\boldsymbol{z}_1$}
 Similarly:
@@ -283,12 +301,24 @@ Thus,
 \begin{align*}
     \frac{\partial E}{\partial (\boldsymbol{h})_j} &= \sum_{k=1}^{K} (\hat{\boldsymbol{o}}_k - \boldsymbol{o}_k) (\mathbf{W}_2)_{kj} \\
     \frac{\partial E}{\partial \boldsymbol{h}} &= \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o})
+    \tikzmark{mark4}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark4) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 For $\boldsymbol{z}_1$, the derivation would be:
 \begin{align*}
     \frac{\partial E}{\partial \boldsymbol{z}_1} = \frac{\partial E}{\partial \boldsymbol{h}} \frac{\partial \boldsymbol{h}}{\partial \boldsymbol{z}_1} = 
     \frac{\partial E}{\partial \boldsymbol{h}} \odot \text{ReLU}'(\boldsymbol{z}_1) = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+    \tikzmark{mark5}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark5) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 
 \section*{(d) Gradient of $E$ wrt $\boldsymbol{W}_1$ and $\boldsymbol{b}_1$}
 Similarly:
@@ -306,12 +336,24 @@ Where the derivative of $\boldsymbol{z}_1$ wrt to $(\boldsymbol{W}_1)_{ij}$ is:
 Similar to $\partial E / \partial \mathbf{W}_2$, This results in an outer product of the upstream gradient $\frac{\partial E}{\partial \boldsymbol{z}_1}$ and the input to the layer, $\boldsymbol{x}$:
 \begin{align*}
     \frac{\partial E}{\partial \mathbf{W}_1} = \left[ \mathbf{W}_2^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0) \right] \boldsymbol{x}^\top
+    \tikzmark{mark6}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark6) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 For $\boldsymbol{b}_1$, the derivation would be:
 \begin{align*}
     \frac{\partial E}{\partial \boldsymbol{b}_1} = \frac{\partial E}{\partial \boldsymbol{z}_1} \frac{\partial \boldsymbol{z}_1}{\partial \boldsymbol{b}_1} = 
     \frac{\partial E}{\partial \boldsymbol{z}_1} \mathbf{I} = \mathbf{W}_1^\top (\hat{\boldsymbol{o}} - \boldsymbol{o}) \odot \mathbb{I}(\boldsymbol{z}_1 > 0)
+    \tikzmark{mark7}
 \end{align*}
+\tikz[overlay, remember picture] {
+    \coordinate (lstart) at ($(pic cs:mark7) + (1, 0.1)$);
+    \coordinate (lend) at ($(current page.east |- lstart) - (0.5cm, 0)$);
+    \draw[dashed, thick, line width=1.5pt, {Stealth}-] (lstart) -- (lend);
+}
 
 \chapter{Problem 3: Convolutional Neural Network}
 

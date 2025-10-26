@@ -1,0 +1,5 @@
+# Exclude certain files and directories from language statistics
+*/prompt/* linguist-vendored
+*.ipynb linguist-vendored
+*.pdf linguist-vendored
+*.txt linguist-documentation

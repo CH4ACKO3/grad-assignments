@@ -1,0 +1,329 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除“Chapter”字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Analysis of Algorithms - Assignment 3}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+% ===== 自定义命令 =====
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+  \maketitle
+  \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+  \begin{KeepFromToc} % 将目录本身排除在目录之外
+    \tableofcontents
+  \end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Amortized Analysis}
+
+\section{Queue Implementation with Two Stacks}
+
+\subsection{Implementation}
+
+We implement a queue using two stacks by maintaining:
+\begin{itemize}
+    \item \textbf{Input Stack} ($S_{in}$): For enqueue operations
+    \item \textbf{Output Stack} ($S_{out}$): For dequeue operations
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{Queue Operations with Two Stacks}
+\begin{algorithmic}[1]
+\REQUIRE Two stacks $S_{in}$ and $S_{out}$
+\STATE $\textbf{function Push}(x)$
+    \STATE $S_{in}.\text{push}(x)$
+\STATE \textbf{end function}
+
+\STATE $\textbf{function Get()}$
+    \IF{$S_{out}$ is empty}
+        \WHILE{$S_{in}$ is not empty}
+            \STATE $S_{out}.\text{push}(S_{in}.\text{pop}())$
+        \ENDWHILE
+    \ENDIF
+    \RETURN $S_{out}.\text{pop}()$
+\STATE \textbf{end function}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Proof of O(1) Amortized Time}
+We use the \textit{accounting method} to prove the amortized cost analysis.
+
+\textbf{Assigning Costs:} We assign an amortized cost of $4$ for each Push operation:
+\begin{itemize}
+    \item $1$ unit pays for the actual Push into $S_{in}$
+    \item $3$ unit is stored as credit on the element for its future operations
+\end{itemize}
+
+For Get operations, we assign an amortized cost of $0$:
+\begin{itemize}
+    \item When $S_{out}$ is non-empty: the actual cost is $1$ (one Pop), and we use $1$ credit from the poped element (in $S_{out}$)
+    \item When $S_{out}$ is empty: we transfer all elements from $S_{in}$ to $S_{out}$
+    \begin{itemize}
+        \item Each transfer requires one Pop from $S_{in}$ (cost $1$) and one Push to $S_{out}$ (cost $1$), paid by the credit on the element
+        \item After transfer, each element in $S_{out}$ has $1$ credit left, which is enough to cover the cost of the future Pops.
+              Then, we can simply Pop $1$ element from $S_{out}$ with cost $1$, covered by the credit on the element
+        \item Total cost: $2k + 1$ for transferring $k$ elements and one final Pop, covered by $2k + 1$ credits
+    \end{itemize}
+\end{itemize}
+
+\textbf{Invariant:} At any point, the total credit stored equals $3 \left| S_{in} \right|+\left| S_{out} \right|$, since each element in $S_{in}$ has $3$ units of credit from its Push operation,
+and each element in $S_{out}$ has $1$ credit left after transferring from $S_{in}$, which cost $2$ credits.
+
+\textbf{Conclusion:} Each Push has amortized cost $O(1)$, each Get has amortized cost $O(1)$, and the total amortized cost over any sequence of $n$ operations is $O(n)$, giving $O(1)$ amortized cost per operation.
+
+\section{Amortized Computation Cost Analysis}
+
+\textbf{Total Cost Calculation:}
+
+Let $k = \lfloor \log_2(n) \rfloor$. The total cost is:
+\begin{align*}
+T(n) &= \sum_{j=0}^{k} 2^j + \left(n - (k + 1)\right) \cdot 1 \\
+&= \sum_{j=0}^{k} 2^j + n - k - 1
+\end{align*}
+
+We know that $\sum_{j=0}^{k} 2^j = 2^{k+1} - 1 = 2 \cdot 2^k - 1$.
+
+Since $2^k \leq n < 2^{k+1}$, we have:
+\begin{align*}
+2^k &\leq n \\
+2^{k+1} &\leq 2n
+\end{align*}
+
+Therefore:
+\begin{align*}
+T(n) &= 2^{k+1} - 1 + n - k - 1 \\
+&\leq 2n - 1 + n - k - 1 \\
+&= 3n - k - 2 \\
+&\leq 3n \\
+\frac{T(n)}{n} &\leq \frac{3n}{n} = 3 = O(1)
+\end{align*}
+
+Thus, the amortized computation cost per day is $O(1)$.
+
+\chapter{Element Selection Algorithm}
+
+\section{Randomized Algorithm}
+
+\subsection{Algorithm Description}
+
+\begin{algorithm}[H]
+\caption{Simplified Randomized Search}
+\begin{algorithmic}[1]
+\REQUIRE Arrays $X[1..n]$, $next[1..n]$, $c > 0$ and value $x$
+\ENSURE True if $x \in X$, False otherwise
+\STATE Let $m = c \lceil \sqrt{n} \rceil$
+\STATE Randomly sample $m$ distinct indices uniformly from $[1..n]$
+\STATE Among the sampled indices, find $i^*$ that minimizes $|X[i] - x|$
+\STATE Follow $next$ pointers from $i^*$ for at most $m$ steps
+    \FOR{$k = 1$ to $m$}
+        \IF{$X[i^*] = x$}
+            \RETURN True
+        \ENDIF
+        \STATE $i^* = next[i^*]$
+    \ENDFOR
+\RETURN False
+\end{algorithmic}
+\end{algorithm}
+
+This requires $O(\sqrt{n})$ time complexity as expected.
+
+\section{Success Probability Analysis}
+
+Let $X'$ be the sorted version of $X$, and $x$ be the target element.
+Let $I$ be the set of indices within distance $m=c\sqrt{n}$ from $x$ in $X'$, 
+that is, $I = \{i \in [1..n] \mid \textit{lowerbound}(x)-i \leq m \pmod{n}\}$.
+The probability that, if we take $m$ samples uniformly from $[1..n]$,
+at least one of them is in $I$ is a hypergeometric distribution,
+which is given by:
+\begin{align*}
+&P(\text{at least one sample among $m$ in $I$})  \\
+&= 1 - P(\text{all $m$ samples in } \overline{I}) \\
+&= 1 - \frac{\binom{m}{0} \binom{n-m}{m}}{\binom{n}{m}} \\
+&= 1 - \frac{(n-m)!(n-m)!}{n!(n-2m)!} \quad \text{($m!$ cancels out)}\\
+\end{align*}
+
+We want this to be at least $0.99$:
+\begin{align*}
+1 - \frac{(n-m)!(n-m)!}{n!(n-2m)!} &\geq 0.99 \\
+\frac{(n-m)!(n-m)!}{n!(n-2m)!} &\leq 0.01 \\
+m &\leq 2.15 \sqrt{n}
+\end{align*}
+
+So $m = \lceil 2.15\sqrt{n} \rceil$ suffices for 99\% success probability.
+Similarly, minimum $m$ for 99.9\% and 99.99\% success probabilities are $\lceil 2.63\sqrt{n} \rceil$ and $\lceil 3.04\sqrt{n} \rceil$, respectively.
+
+\chapter{Shelf Scheduling Algorithm}
+
+\section{NP-Hardness Proof}
+
+We prove that the parallel scheduling problem is NP-hard by reduction from the Subset-sum problem under a special case, where $p=2$.
+
+\textbf{Reduction:} Given an instance of subset-sum with a set of positive integers $\{a_1, a_2, \ldots, a_n\}$ and target sum $S$,
+we construct a $2$-processor parallel scheduling instance as follows:
+\begin{itemize}
+    \item occupy time: $T[1,...,n]=\{a_1, a_2, ..., a_n\}$
+    \item Processor: $P[1,...,n], P[i]=1$
+\end{itemize}
+
+The question becomes: Can we schedule these $n$ jobs on $2$ processors such that all jobs finish at time $t = S$?
+This is equivalent to asking whether we can partition the $n$ elements into two subsets, with one of them sum up to $S$.
+
+The reduction is given within polynomial time, and since Subset-sum is NP-complete, the parallel scheduling problem is NP-hard.
+
+\section{3-Approximation Algorithm}
+
+We present a scheduling algorithm that achieves a 3-approximation guarantee.
+Since the performance bound of the algorithm given in the hint is difficult to prove,
+I designed another very similar algorithm that can easily prove its 3-approximation property.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{code/result/A3_P3.pdf}
+    \caption{An example of the scheduling algorithm}
+\end{figure}
+
+\subsection{Algorithm Description:}
+Since $p = 2^k$ for some integer $k$, there are only $\log_2 p$ distinct scales of processor requirements. We partition jobs into categories based on their processor requirements:
+\begin{itemize}
+    \item Category $i$: jobs with $P[j] \in (2^{i-1}, 2^i]$ for $i = 0, \ldots, k$
+\end{itemize}
+
+The algorithm proceeds as follows:
+\begin{enumerate}
+    \item categorize all jobs by processor requirements $P[j]$ into $k$ categories
+    \item For each category $i$ from $k$ to $0$:
+    \begin{itemize}
+        \item Round up the processor requirements of all jobs in this category to $2^i$
+        \item For each job in this category, find the processor with the earliest end time among all current processors,
+        for example, processor $j$, and assign $p[j]\sim p[j+2^i-1]$ to this job.
+        Such assignment would push the end time of these $2^i$ processors to the future.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Time Complexity:}
+Since there are in total $n$ jobs, and each requires searching the earliest end time among $p$ processors,
+which can be done in $O(\log p)$ time, the total time complexity is $O(n \log p)$.
+
+\section{Lower Bounds for Optimal Makespan}
+
+Let $M^*$ be the optimal makespan. We establish two lower bounds:
+
+\textbf{Bound 1:} $M^* \geq \max_{i=1}^{n} T[i]$ \\
+This is trivial: any job $i$ must run for at least $T[i]$ time units. Therefore, the makespan cannot be smaller than the longest job duration.
+
+\textbf{Bound 2:} $M^* \geq \frac{\sum_{i=1}^{n} T[i] \cdot P[i]}{p}$ \\
+This inequality represents the relationship between total computation capacity and job requirements,
+regardless of scheduling. The total computation capacity can be considered a large rectangle box,
+which is $p \times M^*$, need to fit in all jobs, each can be considered a small rectangle box,
+which is $P[i] \times T[i]$.
+
+Thus, it is obvious that the volume of the large box is at least the sum of the volumes of all small boxes,
+that is, $p \times M^* \geq \sum_{i=1}^{n} T[i] \cdot P[i]$, which gives $M^* \geq \frac{\sum_{i=1}^{n} T[i] \cdot P[i]}{p}$.
+
+\section{3-Approximation Proof}
+
+We decompose the schedule produced by our algorithm into two parts:
+\[
+\text{ALG} = A + B
+\]
+where:
+\begin{itemize}
+    \item $A$: total height of all non-last shelves across all categories
+    \item $B$: total height of the last shelf in each category
+\end{itemize}
+
+\subsection{$B \leq \text{OPT}$}
+Consider the last shelf in each category, which contains the largest duration job in that category,
+
+
+\chapter{Randomized Algorithm}
+
+
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}

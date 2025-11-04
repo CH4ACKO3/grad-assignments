@@ -1,0 +1,438 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除“Chapter”字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+% 重新定义 \chapternumberline，使其不显示章节号
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+% 重新定义 \printchaptertitle，使其只打印标题文本
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  % 设置 \leftmark 为章节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markboth{\MakeUppercase{#1}}{}% 设置 \leftmark (左页眉)
+}
+\renewcommand{\sectionmark}[1]{%
+  % 设置 \rightmark 为小节标题文本，不带编号
+  % \MakeUppercase{#1} 会将标题转换为大写，如果不需要，直接用 #1
+  \markright{\MakeUppercase{#1}}% 设置 \rightmark (右页眉)
+}
+\makeatother
+
+\title{\huge\textbf{Analysis of Algorithms - Assignment 3}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% 设置段落缩进为0
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex} % 可选：增加段落之间的垂直间距
+
+% ===== 自定义命令 =====
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+  \maketitle
+  \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+  \begin{KeepFromToc} % 将目录本身排除在目录之外
+    \tableofcontents
+  \end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 章节模板 =====
+\chapter{Amortized Analysis}
+
+\section{Queue Implementation with Two Stacks}
+
+\subsection{Implementation}
+
+We implement a queue using two stacks by maintaining:
+\begin{itemize}
+    \item \textbf{Input Stack} ($S_{in}$): For enqueue operations
+    \item \textbf{Output Stack} ($S_{out}$): For dequeue operations
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{Queue Operations with Two Stacks}
+\begin{algorithmic}[1]
+\REQUIRE Two stacks $S_{in}$ and $S_{out}$
+\STATE $\textbf{function Push}(x)$
+    \STATE $S_{in}.\text{push}(x)$
+\STATE \textbf{end function}
+
+\STATE $\textbf{function Get()}$
+    \IF{$S_{out}$ is empty}
+        \WHILE{$S_{in}$ is not empty}
+            \STATE $S_{out}.\text{push}(S_{in}.\text{pop}())$
+        \ENDWHILE
+    \ENDIF
+    \RETURN $S_{out}.\text{pop}()$
+\STATE \textbf{end function}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Proof of O(1) Amortized Time}
+We use the \textit{accounting method} to prove the amortized cost analysis.
+
+\textbf{Assigning Costs:} We assign an amortized cost of $4$ for each Push operation:
+\begin{itemize}
+    \item $1$ unit pays for the actual Push into $S_{in}$
+    \item $3$ unit is stored as credit on the element for its future operations
+\end{itemize}
+
+For Get operations, we assign an amortized cost of $0$:
+\begin{itemize}
+    \item When $S_{out}$ is non-empty: the actual cost is $1$ (one Pop), and we use $1$ credit from the poped element (in $S_{out}$)
+    \item When $S_{out}$ is empty: we transfer all elements from $S_{in}$ to $S_{out}$
+    \begin{itemize}
+        \item Each transfer requires one Pop from $S_{in}$ (cost $1$) and one Push to $S_{out}$ (cost $1$), paid by the credit on the element
+        \item After transfer, each element in $S_{out}$ has $1$ credit left, which is enough to cover the cost of the future Pops.
+              Then, we can simply Pop $1$ element from $S_{out}$ with cost $1$, covered by the credit on the element
+        \item Total cost: $2k + 1$ for transferring $k$ elements and one final Pop, covered by $2k + 1$ credits
+    \end{itemize}
+\end{itemize}
+
+\textbf{Invariant:} At any point, the total credit stored equals $3 \left| S_{in} \right|+\left| S_{out} \right|$, since each element in $S_{in}$ has $3$ units of credit from its Push operation,
+and each element in $S_{out}$ has $1$ credit left after transferring from $S_{in}$, which cost $2$ credits.
+
+\textbf{Conclusion:} Each Push has amortized cost $O(1)$, each Get has amortized cost $O(1)$, and the total amortized cost over any sequence of $n$ operations is $O(n)$, giving $O(1)$ amortized cost per operation.
+
+\section{Amortized Computation Cost Analysis}
+
+\textbf{Total Cost Calculation:}
+
+Let $k = \lfloor \log_2(n) \rfloor$. The total cost is:
+\begin{align*}
+T(n) &= \sum_{j=0}^{k} 2^j + \left(n - (k + 1)\right) \cdot 1 \\
+&= \sum_{j=0}^{k} 2^j + n - k - 1
+\end{align*}
+
+We know that $\sum_{j=0}^{k} 2^j = 2^{k+1} - 1 = 2 \cdot 2^k - 1$.
+
+Since $2^k \leq n < 2^{k+1}$, we have:
+\begin{align*}
+2^k &\leq n \\
+2^{k+1} &\leq 2n
+\end{align*}
+
+Therefore:
+\begin{align*}
+T(n) &= 2^{k+1} - 1 + n - k - 1 \\
+&\leq 2n - 1 + n - k - 1 \\
+&= 3n - k - 2 \\
+&\leq 3n \\
+\frac{T(n)}{n} &\leq \frac{3n}{n} = 3 = O(1)
+\end{align*}
+
+Thus, the amortized computation cost per day is $O(1)$.
+
+\chapter{Element Selection Algorithm}
+
+\section{Randomized Algorithm}
+
+\subsection{Algorithm Description}
+
+\begin{algorithm}[H]
+\caption{Simplified Randomized Search}
+\begin{algorithmic}[1]
+\REQUIRE Arrays $X[1..n]$, $next[1..n]$, $c > 0$ and value $x$
+\ENSURE True if $x \in X$, False otherwise
+\STATE Let $m = c \lceil \sqrt{n} \rceil$
+\STATE Randomly sample $m$ distinct indices uniformly from $[1..n]$
+\STATE Among the sampled indices, find $i^*$ that minimizes $|X[i] - x|$
+\STATE Follow $next$ pointers from $i^*$ for at most $m$ steps
+    \FOR{$k = 1$ to $m$}
+        \IF{$X[i^*] = x$}
+            \RETURN True
+        \ENDIF
+        \STATE $i^* = next[i^*]$
+    \ENDFOR
+\RETURN False
+\end{algorithmic}
+\end{algorithm}
+
+This requires $O(\sqrt{n})$ time complexity as expected.
+
+\section{Success Probability Analysis}
+
+Let $X'$ be the sorted version of $X$, and $x$ be the target element.
+Let $I$ be the set of indices within distance $m=c\sqrt{n}$ from $x$ in $X'$, 
+that is, $I = \{i \in [1..n] \mid \textit{lowerbound}(x)-i \leq m \pmod{n}\}$.
+The probability that, if we take $m$ samples uniformly from $[1..n]$,
+at least one of them is in $I$ is a hypergeometric distribution,
+which is given by:
+\begin{align*}
+&P(\text{at least one sample among $m$ in $I$})  \\
+&= 1 - P(\text{all $m$ samples in } \overline{I}) \\
+&= 1 - \frac{\binom{m}{0} \binom{n-m}{m}}{\binom{n}{m}} \\
+&= 1 - \frac{(n-m)!(n-m)!}{n!(n-2m)!} \quad \text{($m!$ cancels out)}\\
+\end{align*}
+
+We want this to be at least $0.99$:
+\begin{align*}
+1 - \frac{(n-m)!(n-m)!}{n!(n-2m)!} &\geq 0.99 \\
+\frac{(n-m)!(n-m)!}{n!(n-2m)!} &\leq 0.01 \\
+m &\leq 2.15 \sqrt{n}
+\end{align*}
+
+So $m = \lceil 2.15\sqrt{n} \rceil$ suffices for 99\% success probability.
+Similarly, minimum $m$ for 99.9\% and 99.99\% success probabilities are $\lceil 2.63\sqrt{n} \rceil$ and $\lceil 3.04\sqrt{n} \rceil$, respectively.
+
+\chapter{Shelf Scheduling Algorithm}
+
+\section{NP-Hardness Proof}
+
+We prove that the parallel scheduling problem is NP-hard by reduction from the Subset-sum problem under a special case, where $p=2$.
+
+\textbf{Reduction:} Given an instance of subset-sum with a set of positive integers $\{a_1, a_2, \ldots, a_n\}$ and target sum $S$,
+we construct a $2$-processor parallel scheduling instance as follows:
+\begin{itemize}
+    \item occupy time: $T[1,...,n]=\{a_1, a_2, ..., a_n\}$
+    \item Processor: $P[1,...,n], P[i]=1$
+\end{itemize}
+
+The question becomes: Can we schedule these $n$ jobs on $2$ processors such that all jobs finish at time $t = S$?
+This is equivalent to asking whether we can partition the $n$ elements into two subsets, with one of them sum up to $S$.
+The reduction is given within polynomial time, and since Subset-sum is NP-complete, the parallel scheduling problem is NP-hard.
+
+\section{3-Approximation Algorithm}
+
+We present a scheduling algorithm that achieves a 3-approximation guarantee.
+Since the performance bound of the algorithm given in the \textbf{hint} appears to be difficult (to me),
+I designed another very similar algorithm that can easily prove its 3-approximation property.
+
+\begin{figure}[H]
+    \centering
+    \label{fig:A3_P3}
+    \includegraphics[width=0.8\textwidth]{code/result/A3_P3.pdf}
+    \caption{An example of the scheduling algorithm, where we have $p = 2^k = 16$ processors, and $n = 100$ jobs.
+    The grey area are processor requirements of each job, while white area are additionally assigned (by rounding up) processors for the job.
+    The vloume below the red line can be considered ``A'', the volume between the red and blue line considered ``B''.}
+\end{figure}
+
+\subsection{Algorithm Description:}
+Since $p = 2^k$ for some integer $k$, there are only $\log_2 p$ distinct scales of processor requirements. We partition jobs into categories based on their processor requirements:
+\begin{itemize}
+    \item Category $i$: jobs with $P[j] \in (2^{i-1}, 2^i]$ for $i = 0, \ldots, k$
+\end{itemize}
+
+The algorithm proceeds as follows:
+\begin{enumerate}
+    \item categorize all jobs by processor requirements $P[j]$ into $k$ categories
+    \item For each category $i$ from $k$ to $0$:
+    \begin{itemize}
+        \item Round up the processor requirements of all jobs in this category to $2^i$
+        \item For each job in this category, find the processor with the earliest end time among all current processors,
+        for example, processor $j$, and assign $p[j]\sim p[j+2^i-1]$ to this job.
+        Such assignment would push the end time of these $2^i$ processors to the future.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Time Complexity:}
+Since there are in total $n$ jobs, and each requires searching the earliest end time among $p$ processors,
+which can be done in $O(\log p)$ time, the total time complexity is $O(n \log p)$.
+
+\section{Lower Bounds for Optimal Makespan}
+
+Let $M^*$ be the optimal makespan. We establish two lower bounds:
+
+\textbf{Bound 1:} $M^* \geq \max_{i=1}^{n} T[i]$ \\
+This is trivial: any job $i$ must run for at least $T[i]$ time units. Therefore, the makespan cannot be smaller than the longest job duration.
+
+\textbf{Bound 2:} $M^* \geq \frac{\sum_{i=1}^{n} T[i] \cdot P[i]}{p}$ \\
+This inequality represents the relationship between total computation capacity and job requirements,
+regardless of scheduling. The total computation capacity can be considered a large rectangle box,
+which is $p \times M^*$, need to fit in all jobs, each can be considered a small rectangle box,
+which is $P[i] \times T[i]$.
+
+Thus, it is obvious that the volume of the large box is at least the sum of the volumes of all small boxes,
+that is, $p \times M^* \geq \sum_{i=1}^{n} T[i] \cdot P[i]$, which gives $M^* \geq \frac{\sum_{i=1}^{n} T[i] \cdot P[i]}{p}$.
+
+\section{3-Approximation Proof}
+We decompose the schedule produced by our algorithm into two parts (different from the original question):
+\[
+\text{ALG} = A + B
+\]
+where:
+\begin{itemize}
+    \item $A$: earliest end time among all processors
+    \item $B$: the time between the earliest end time and the latest end time (i.e., the makespan)
+\end{itemize}
+A visualization is shown in Figure \ref{fig:A3_P3}.
+``A'' can be considered the height below the red line, while ``B'' can be considered the height between the red and blue line.
+Next we will prove that $A \leq 2 \cdot \text{OPT}$ and $B \leq \text{OPT}$.
+
+\subsection{Correctness of Algorithm}
+The only concern about whether this algorithm can generate a valid schedule is whether,
+when assigning processors to each job, all of these $j\sim j+2^i-1$ processors are actually available.
+
+The justification is that, say that we are assigning processors for job $i$,
+since we process all jobs in reverse order of their category (processor requirements),
+the jobs assigned before job $i$ must have equal or smaller processor requirements.
+We can follow a simple rule when assigning processors to each job, that is,
+only choose those processor with index $j \bmod 2^i$. It can be easily proved that,
+such rule can guarantee that the end time of these $j\sim j+2^i-1$ processors are identical.
+
+\subsection{Proof of $A \leq 2 \cdot \text{OPT}$}
+According to the definition of $A$, it is the time of earliest end time among all processors.
+That is, all $p$ processors are fully occupied before time $A$.
+Let $I_A$ be the set of jobs that start before time $A$, $P'$ be the rounded up processor requirements,
+$T'$ be the truncated job durations (at time $A$), then we have:
+
+\begin{align*}
+A \times p &= \sum_{i\in I_A} P'[i] \times T'[i] \\
+&\leq \sum_{i\leq n} P'[i] T[i] \\
+&\leq \sum_{i\leq n} 2 P[i] T[i] \\
+A &\leq 2 \frac{\sum_{i\leq n} P[i] T[i]}{p} \leq 2 \cdot M^* = 2 \cdot \text{OPT}\\
+\end{align*}
+
+\subsection{Proof of $B \leq \text{OPT}$}
+We can prove the bound in 2 steps:
+\begin{proposition}
+    Every job that appears in B must have started at time A or earlier.
+\end{proposition}
+\begin{proof}
+    We can use proof by contradiction. Suppose there is a job in B that starts after time A.
+    When assigning a processor to this job, we could have assigned it to one of the processors that contributed to bound A.
+    This would violate the previous rule of the algorithm which states that jobs are always assigned to the processor with the earliest finishing time.
+    Therefore, the proposition holds.
+\end{proof}
+
+\begin{proposition}
+    The height of B is at most the duration of the longest job $\max_{i=1}^n T[i]$
+\end{proposition}
+\begin{proof}
+    The proof is straightforward: consider the job that contributed to bound B, let it be job $j$, it must have started at time A or earlier, according to the previous proposition.
+    Therefore, the duration of this job is at least the height of B, that is,
+    \begin{align*}
+    B &\leq T[j] \leq \max_{i=1}^n T[i] \leq M^* = \text{OPT}
+    \end{align*}
+\end{proof}
+\chapter{Randomized Algorithm}
+
+We consider the problem where $n$ servers and $m = 2n \log n$ tasks. Each task is independently and uniformly randomly assigned to one of the $n$ servers.
+
+\section{Probability Bound for First Server}
+
+Let $X$ be the number of tasks assigned to the first server. Since each task is independently assigned to the first server with probability $1/n$, $X$ follows a binomial distribution:
+\[
+X \sim \text{Bin}(m, 1/n)
+\]
+where $m = 2n \log n$.
+
+The expected value is:
+\[
+\mathbb{E}[X] = \frac{m}{n} = \frac{2n \log n}{n} = 2 \log n
+\]
+
+We want to show that:
+\[
+\mathbb{P}(X \geq 2e \cdot \log n) \leq \frac{1}{n^2}
+\]
+
+Using the Chernoff bound for the upper tail of a binomial distribution, we have:
+\[
+\mathbb{P}(X \geq (1+\delta)\mu) \leq \left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}}\right)^{\mu}
+\]
+where $\mu = \mathbb{E}[X] = 2 \log n$.
+
+We want $(1+\delta)\mu = 2e \cdot \log n$, which gives:
+\[
+1+\delta = e \quad \Rightarrow \quad \delta = e - 1
+\]
+
+Substituting into the Chernoff bound:
+\begin{align*}
+\mathbb{P}(X \geq 2e \cdot \log n) &\leq \left(\frac{e^{e-1}}{e^{e}}\right)^{2 \log n} \\
+&= \left(\frac{e^{e-1}}{e^{e}}\right)^{2 \log n} \\
+&= \left(\frac{1}{e}\right)^{2 \log n} \\
+&= e^{-2 \log n} \\
+&= \frac{1}{e^{2 \log n}} \\
+&= \frac{1}{n^2}
+\end{align*}
+
+Therefore, $\mathbb{P}(X \geq 2e \cdot \log n) \leq 1/n^2$.
+
+\section{High Probability Bound for All Servers}
+
+We now show that with high probability, no server receives at least $2e \log n$ tasks.
+
+Let $A_i$ be the event that server $i$ receives at least $2e \log n$ tasks. By the union bound:
+\begin{align*}
+\mathbb{P}(\text{at least one server receives } \geq 2e \log n \text{ tasks}) &= \mathbb{P}\left(\bigcup_{i=1}^{n} A_i\right) \\
+&\leq \sum_{i=1}^{n} \mathbb{P}(A_i) \\
+&= n \cdot \mathbb{P}(A_1) \quad \text{(by symmetry)} \\
+&\leq n \cdot \frac{1}{n^2} \quad \text{(from part 1)} \\
+&= \frac{1}{n}
+\end{align*}
+
+Therefore:
+\[
+\mathbb{P}(\text{no server receives } \geq 2e \log n \text{ tasks}) \geq 1 - \frac{1}{n}
+\]
+
+As $n \to \infty$, this probability approaches 1, which means with high probability, no server receives at least $2e \log n$ tasks.
+
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}

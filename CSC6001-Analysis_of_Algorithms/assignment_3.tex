@@ -85,6 +85,7 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
 \newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
 
 \begin{document}
 
@@ -251,19 +252,21 @@ we construct a $2$-processor parallel scheduling instance as follows:
 
 The question becomes: Can we schedule these $n$ jobs on $2$ processors such that all jobs finish at time $t = S$?
 This is equivalent to asking whether we can partition the $n$ elements into two subsets, with one of them sum up to $S$.
-
 The reduction is given within polynomial time, and since Subset-sum is NP-complete, the parallel scheduling problem is NP-hard.
 
 \section{3-Approximation Algorithm}
 
 We present a scheduling algorithm that achieves a 3-approximation guarantee.
-Since the performance bound of the algorithm given in the hint is difficult to prove,
+Since the performance bound of the algorithm given in the \textbf{hint} appears to be difficult (to me),
 I designed another very similar algorithm that can easily prove its 3-approximation property.
 
 \begin{figure}[H]
     \centering
+    \label{fig:A3_P3}
     \includegraphics[width=0.8\textwidth]{code/result/A3_P3.pdf}
-    \caption{An example of the scheduling algorithm}
+    \caption{An example of the scheduling algorithm, where we have $p = 2^k = 16$ processors, and $n = 100$ jobs.
+    The grey area are processor requirements of each job, while white area are additionally assigned (by rounding up) processors for the job.
+    The vloume below the red line can be considered ``A'', the volume between the red and blue line considered ``B''.}
 \end{figure}
 
 \subsection{Algorithm Description:}
@@ -305,23 +308,129 @@ Thus, it is obvious that the volume of the large box is at least the sum of the 
 that is, $p \times M^* \geq \sum_{i=1}^{n} T[i] \cdot P[i]$, which gives $M^* \geq \frac{\sum_{i=1}^{n} T[i] \cdot P[i]}{p}$.
 
 \section{3-Approximation Proof}
-
-We decompose the schedule produced by our algorithm into two parts:
+We decompose the schedule produced by our algorithm into two parts (different from the original question):
 \[
 \text{ALG} = A + B
 \]
 where:
 \begin{itemize}
-    \item $A$: total height of all non-last shelves across all categories
-    \item $B$: total height of the last shelf in each category
+    \item $A$: earliest end time among all processors
+    \item $B$: the time between the earliest end time and the latest end time (i.e., the makespan)
 \end{itemize}
+A visualization is shown in Figure \ref{fig:A3_P3}.
+``A'' can be considered the height below the red line, while ``B'' can be considered the height between the red and blue line.
+Next we will prove that $A \leq 2 \cdot \text{OPT}$ and $B \leq \text{OPT}$.
 
-\subsection{$B \leq \text{OPT}$}
-Consider the last shelf in each category, which contains the largest duration job in that category,
+\subsection{Correctness of Algorithm}
+The only concern about whether this algorithm can generate a valid schedule is whether,
+when assigning processors to each job, all of these $j\sim j+2^i-1$ processors are actually available.
 
+The justification is that, say that we are assigning processors for job $i$,
+since we process all jobs in reverse order of their category (processor requirements),
+the jobs assigned before job $i$ must have equal or smaller processor requirements.
+We can follow a simple rule when assigning processors to each job, that is,
+only choose those processor with index $j \bmod 2^i$. It can be easily proved that,
+such rule can guarantee that the end time of these $j\sim j+2^i-1$ processors are identical.
 
+\subsection{Proof of $A \leq 2 \cdot \text{OPT}$}
+According to the definition of $A$, it is the time of earliest end time among all processors.
+That is, all $p$ processors are fully occupied before time $A$.
+Let $I_A$ be the set of jobs that start before time $A$, $P'$ be the rounded up processor requirements,
+$T'$ be the truncated job durations (at time $A$), then we have:
+
+\begin{align*}
+A \times p &= \sum_{i\in I_A} P'[i] \times T'[i] \\
+&\leq \sum_{i\leq n} P'[i] T[i] \\
+&\leq \sum_{i\leq n} 2 P[i] T[i] \\
+A &\leq 2 \frac{\sum_{i\leq n} P[i] T[i]}{p} \leq 2 \cdot M^* = 2 \cdot \text{OPT}\\
+\end{align*}
+
+\subsection{Proof of $B \leq \text{OPT}$}
+We can prove the bound in 2 steps:
+\begin{proposition}
+    Every job that appears in B must have started at time A or earlier.
+\end{proposition}
+\begin{proof}
+    We can use proof by contradiction. Suppose there is a job in B that starts after time A.
+    When assigning a processor to this job, we could have assigned it to one of the processors that contributed to bound A.
+    This would violate the previous rule of the algorithm which states that jobs are always assigned to the processor with the earliest finishing time.
+    Therefore, the proposition holds.
+\end{proof}
+
+\begin{proposition}
+    The height of B is at most the duration of the longest job $\max_{i=1}^n T[i]$
+\end{proposition}
+\begin{proof}
+    The proof is straightforward: consider the job that contributed to bound B, let it be job $j$, it must have started at time A or earlier, according to the previous proposition.
+    Therefore, the duration of this job is at least the height of B, that is,
+    \begin{align*}
+    B &\leq T[j] \leq \max_{i=1}^n T[i] \leq M^* = \text{OPT}
+    \end{align*}
+\end{proof}
 \chapter{Randomized Algorithm}
 
+We consider the problem where $n$ servers and $m = 2n \log n$ tasks. Each task is independently and uniformly randomly assigned to one of the $n$ servers.
+
+\section{Probability Bound for First Server}
+
+Let $X$ be the number of tasks assigned to the first server. Since each task is independently assigned to the first server with probability $1/n$, $X$ follows a binomial distribution:
+\[
+X \sim \text{Bin}(m, 1/n)
+\]
+where $m = 2n \log n$.
+
+The expected value is:
+\[
+\mathbb{E}[X] = \frac{m}{n} = \frac{2n \log n}{n} = 2 \log n
+\]
+
+We want to show that:
+\[
+\mathbb{P}(X \geq 2e \cdot \log n) \leq \frac{1}{n^2}
+\]
+
+Using the Chernoff bound for the upper tail of a binomial distribution, we have:
+\[
+\mathbb{P}(X \geq (1+\delta)\mu) \leq \left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}}\right)^{\mu}
+\]
+where $\mu = \mathbb{E}[X] = 2 \log n$.
+
+We want $(1+\delta)\mu = 2e \cdot \log n$, which gives:
+\[
+1+\delta = e \quad \Rightarrow \quad \delta = e - 1
+\]
+
+Substituting into the Chernoff bound:
+\begin{align*}
+\mathbb{P}(X \geq 2e \cdot \log n) &\leq \left(\frac{e^{e-1}}{e^{e}}\right)^{2 \log n} \\
+&= \left(\frac{e^{e-1}}{e^{e}}\right)^{2 \log n} \\
+&= \left(\frac{1}{e}\right)^{2 \log n} \\
+&= e^{-2 \log n} \\
+&= \frac{1}{e^{2 \log n}} \\
+&= \frac{1}{n^2}
+\end{align*}
+
+Therefore, $\mathbb{P}(X \geq 2e \cdot \log n) \leq 1/n^2$.
+
+\section{High Probability Bound for All Servers}
+
+We now show that with high probability, no server receives at least $2e \log n$ tasks.
+
+Let $A_i$ be the event that server $i$ receives at least $2e \log n$ tasks. By the union bound:
+\begin{align*}
+\mathbb{P}(\text{at least one server receives } \geq 2e \log n \text{ tasks}) &= \mathbb{P}\left(\bigcup_{i=1}^{n} A_i\right) \\
+&\leq \sum_{i=1}^{n} \mathbb{P}(A_i) \\
+&= n \cdot \mathbb{P}(A_1) \quad \text{(by symmetry)} \\
+&\leq n \cdot \frac{1}{n^2} \quad \text{(from part 1)} \\
+&= \frac{1}{n}
+\end{align*}
+
+Therefore:
+\[
+\mathbb{P}(\text{no server receives } \geq 2e \log n \text{ tasks}) \geq 1 - \frac{1}{n}
+\]
+
+As $n \to \infty$, this probability approaches 1, which means with high probability, no server receives at least $2e \log n$ tasks.
 
 % 标记最后一页用于总页数计算
 \label{LastPage}

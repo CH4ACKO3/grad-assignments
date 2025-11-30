@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Arc
 from collections import defaultdict
-from math import *
+from math import inf
 
-k = 4
+k = 5
 p = 2**k
 n = 100
 
@@ -16,7 +16,7 @@ for i in range(0, k+1):
         inv[j] = i
 print(inv)
 prob = np.power(np.power(2, inv)*np.power(2, inv+1), -1)
-P = np.random.choice(range(1, p+1), size=n, p=prob[1:]/prob[1:].sum())
+P = np.random.choice(range(2, p+1), size=n, p=prob[2:]/prob[2:].sum())
 T = np.random.randint(1, 21, n)
 print(P)
 fig, ax = plt.subplots()
@@ -71,7 +71,7 @@ ax.axhline(y=high_v, color='blue', linestyle='--', linewidth=1.5, label=f'B & ma
 ax.legend()
 
 ax.set_xlim(0, p)
-ax.set_ylim(0, max(low)*1.2)
+ax.set_ylim(0, np.max(low)*1.2)
 
 plt.show()
-fig.savefig('code/result/A3_P3.pdf', dpi=500, bbox_inches='tight')
+# fig.savefig('code/result/A3_P3.pdf', dpi=500, bbox_inches='tight')

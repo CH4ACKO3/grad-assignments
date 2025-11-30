@@ -1,0 +1,47 @@
+Assignment 3. Due on 8 Dec 11:59 PM. 
+Exercise 1. An energetic salesman works every day of the week. He can work in only one of two towns A and B on each day. For each day he works in town A (or 
+B) his expected reward is rA (or rB, respectively). The cost of changing towns is 
+c. Assume that c>rA >rB, and that there is a discount factor ¦Á< 1. 
+(a) 
+Show that for ¦Á sufficiently small, the optimal policy is to stay in the town he starts in, and that for ¦Á sufficiently close to 1, the optimal policy is to move to town A (if not starting there) and stay in A for all subsequent times. 
+
+(b) 
+Solve the problem for c =3,rA =2,rB =1 and ¦Á =0.9 using policy iteration. 
+
+
+(c) Use a computer to solve the problem of part (b) by value iteration. 
+Exercise 2. Consider a DM making decisions over a finite horizon, with time periods denoted by t ¡Ê{1,...,T }. In each period, the DM makes decisions for N subproblems indexed by i =1,...,N. A state variable st =(st,i) summarizes the DM¡¯s information about each subproblem in period t. We denote the state space for subproblem i by St,i and the state space for all subproblems by St = .N 
+i=1St,i, where . denotes the Cartesian product. We assume that St,i are finite and the initial state s1 is given. In each period t, after observing st, the DM selects an action at,i for each subproblem i from the set At,i(st,i), which we assume to be a finite set. We denote the actions selected for all subproblems in period t by at =(at,1,...,at,N ) and denote the set of actions in period t and state st by At(st)= .Ni=1At,i(st,i). We interpret .t,i(st,i,at,i) as the amount of resources consumed by subproblems i in state st,i when action at,i selected. In period t, the DM has limited amount of N
+P 
+resources shared across all subproblems, which is of the form .t,i(st,i,at,i) ¡Ü bt, i=1 where .t,i(st,i,at,i) ¡Ê R and bt ¡Ê R. We assume for all t, i, and states st,i, there exists an action a.t,i(st,i) ¡Ê At,i(st,i) ¨C which we denote simply by a.t,i ¨C such that 
+.t,i(st,i,a.t,i) ¡Ü .t,i(st,i,at,i), .at,i ¡Ê At,i(st,i), 
+where the inequality holds component-wise across all Lt constraints. We denote the DM¡¯s set of feasible actions in a given period and state by 
+
+N
+X 
+At(st)= at ¡Ê At(st): .t,i(st,i,at,i) ¡Ü bt , i=1 
+N
+P 
+and assume this set is nonempty in every period and state, i.e., .t,i(st,i,a.t,i) ¡Ü bt i=1 for any time t and state st. Without loss of generality, we assume .t,i(st,i,at,i) ¡Ý 0 for any (t, i, st,i,at,i). 
+1 
+In each period t, subproblem i generates a reward rt,i(st,i,at,i) and we denote 
+N
+P 
+the total reward in period t by rt(st, at)= rt,i(st,i,at,i). The states for each 
+i=1 
+subproblem i evolve randomly according to a transition function and a random variable so that st+1,i = ft,i(st,i,at,i,¦Å.t,i), and we assume (.¦Åt,i) are independent across subproblems and time. 
+The DM¡¯s goal is to maximize the total expected rewards. 
+(a) 
+(DP Formulation) Write down the optimal Bellman equation for the DP problem described above. Let V1 .(s1) denote the optimal value. 
+
+(b) 
+(Perfect Information Relaxation) Write down the perfect information relax-ation bound, i.e., suppose there is a prophet who knows all realization of the
+
+
+ 
+randomness (¦Åt,i) at the beginning of the time horizon. Let E¦Å. V1P(s1; ¦Å.) denote the corresponding bound. 
+(c) (Improving Bounds) Improve the perfect information relaxation obtained in 
+(b) using information relaxation and prove that the new bound is indeed
+ 
+better than E¦Å. V1P(s1; ¦Å.) . 
+2 

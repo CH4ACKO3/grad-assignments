@@ -1,0 +1,449 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% Math packages
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% Algorithm packages
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% Code highlighting
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{minted}
+
+% Figures
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% Utility packages
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+
+% ===== Page layout =====
+\setlrmarginsandblock{3cm}{3cm}{*}
+\setulmarginsandblock{2.5cm}{1.5cm}{*}
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== Page style =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== Chapter/section format =====
+\makeatletter
+\renewcommand{\chaptername}{}
+\renewcommand{\printchapternum}{}
+\renewcommand{\afterchapternum}{}
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  \markboth{\MakeUppercase{#1}}{}%
+}
+\renewcommand{\sectionmark}[1]{%
+  \markright{\MakeUppercase{#1}}%
+}
+\makeatother
+
+\title{\huge\textbf{Dynamic Programming and Stochastic Control - Assignment 3}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+% Paragraph style
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+% ===== Custom commands =====
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+
+\begin{document}
+
+% ===== Title & TOC =====
+\begin{titlingpage}
+  \maketitle
+  \renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+  \begin{KeepFromToc}
+    \tableofcontents
+  \end{KeepFromToc}
+\end{titlingpage}
+
+% =========================
+\chapter{Salesman Problem with Two Towns}
+An energetic salesman works every day of the week. He can work in only one of two towns A and B on each day. For each day he works in town A (or B), his expected reward is $r_A$ (or $r_B$, respectively). The cost of changing towns is $c$. We assume that $c > r_A > r_B$, and that there is a discount factor $\beta < 1$.
+
+\section{Optimal Policy Analysis}
+We need to show that:
+\begin{enumerate}
+  \item For $\beta$ sufficiently small, the optimal policy is to stay in the town he starts in.
+  \item For $\beta$ sufficiently close to 1, the optimal policy is to move to town A (if not starting there) and stay in A for all subsequent times.
+\end{enumerate}
+
+Let $V_A$ and $V_B$ denote the optimal value functions when the salesman is in town A and B, respectively. The Bellman equations are:
+\begin{align}
+  V_A &= r_A + \beta \max\{V_A, V_B - c\} \label{eq:VA} \\
+  V_B &= r_B + \beta \max\{V_A - c, V_B\} \label{eq:VB}
+\end{align}
+
+The optimal policy in state A is to stay if $V_A \ge V_B - c$, and to move if $V_A < V_B - c$. Similarly, the optimal policy in state B is to move if $V_A - c \ge V_B$, and to stay if $V_A - c < V_B$.
+
+\subsection{Case 1: $\beta$ Sufficiently Small}
+When $\beta$ is very small, the future rewards are heavily discounted. Let us analyze the value functions.
+
+From equations (\ref{eq:VA}) and (\ref{eq:VB}), if the optimal policy is to stay in the current town, we have:
+\begin{align*}
+  V_A &= r_A + \beta V_A = \frac{r_A}{1-\beta} \\
+  V_B &= r_B + \beta V_B = \frac{r_B}{1-\beta}
+\end{align*}
+
+For this to be optimal, we need:
+\begin{align*}
+  V_A &\ge V_B - c \quad \text{(stay in A is optimal)} \\
+  V_A - c &\le V_B \quad \text{(stay in B is optimal)}
+\end{align*}
+
+Substituting the expressions:
+\begin{align*}
+  \frac{r_A}{1-\beta} &\ge \frac{r_B}{1-\beta} - c \\
+  \frac{r_A - r_B}{1-\beta} &\ge -c
+\end{align*}
+
+Since $r_A > r_B$, we have $\frac{r_A - r_B}{1-\beta} > 0$. For small $\beta$, this inequality holds. Similarly:
+\begin{align*}
+  \frac{r_A}{1-\beta} - c &\le \frac{r_B}{1-\beta} \\
+  \frac{r_A - r_B}{1-\beta} &\le c
+\end{align*}
+
+As $\beta \to 0$, we have $\frac{r_A - r_B}{1-\beta} \to r_A - r_B$. Since $c > r_A > r_B$, we have $c > r_A - r_B$. Therefore, for sufficiently small $\beta$, we have:
+\[
+  \frac{r_A - r_B}{1-\beta} < c
+\]
+
+This implies that staying in the current town is optimal for both states when $\beta$ is sufficiently small. The intuition is that when future rewards are heavily discounted, the cost of switching $c$ (which is incurred immediately) outweighs the benefit of moving to a better town.
+
+\subsection{Case 2: $\beta$ Sufficiently Close to 1}
+When $\beta$ is close to 1, future rewards are almost as valuable as current rewards. We need to show that the optimal policy is to move to A and stay there.
+
+If the optimal policy is to always be in A, then:
+\begin{align*}
+  V_A &= r_A + \beta V_A = \frac{r_A}{1-\beta} \\
+  V_B &= r_B + \beta (V_A - c) = r_B + \beta\left(\frac{r_A}{1-\beta} - c\right)
+\end{align*}
+
+For this policy to be optimal, we need:
+\begin{align*}
+  V_A &\ge V_B - c \quad \text{(stay in A is optimal)} \\
+  V_A - c &\ge V_B \quad \text{(move from B to A is optimal)}
+\end{align*}
+
+The second condition is:
+\begin{align*}
+  \frac{r_A}{1-\beta} - c &\ge r_B + \beta\left(\frac{r_A}{1-\beta} - c\right) \\
+  \frac{r_A}{1-\beta} - c &\ge r_B + \frac{\beta r_A}{1-\beta} - \beta c \\
+  \frac{r_A(1-\beta)}{1-\beta} - c &\ge r_B - \beta c \\
+  r_A - c &\ge r_B - \beta c \\
+  r_A - r_B &\ge c(1-\beta)
+\end{align*}
+
+As $\beta \to 1$, we have $c(1-\beta) \to 0$. Since $r_A > r_B$, we have $r_A - r_B > 0$. Therefore, for $\beta$ sufficiently close to 1, we have:
+\[
+  r_A - r_B > c(1-\beta)
+\]
+
+This ensures that moving from B to A is optimal.
+
+Now, let's verify the first condition. We need to check that staying in A is better than moving to B:
+\begin{align*}
+  V_A &\ge V_B - c \\
+  \frac{r_A}{1-\beta} &\ge r_B + \beta\left(\frac{r_A}{1-\beta} - c\right) - c \\
+  \frac{r_A}{1-\beta} &\ge r_B + \frac{\beta r_A}{1-\beta} - \beta c - c \\
+  \frac{r_A(1-\beta)}{1-\beta} &\ge r_B - c(\beta + 1) \\
+  r_A &\ge r_B - c(\beta + 1)
+\end{align*}
+
+Since $r_A > r_B$ and $c > 0$, for $\beta$ close to 1, this inequality holds (in fact, it holds for all $\beta$ since $r_A > r_B$ and the right-hand side is at most $r_B - c < r_B < r_A$).
+
+Therefore, for $\beta$ sufficiently close to 1, the optimal policy is to move to town A (if starting in B) and stay in A for all subsequent periods. The intuition is that when future rewards are highly valued, the one-time switching cost $c$ is worth paying to access the higher reward $r_A$ in all future periods.
+
+\section{Policy Iteration Solution}
+We solve the problem for $c = 3$, $r_A = 2$, $r_B = 1$, and $\beta = 0.9$ using policy iteration.
+
+\subsection{Policy Iteration Algorithm}
+Policy iteration consists of two steps:
+\begin{enumerate}
+  \item \textbf{Policy Evaluation}: Given a policy, compute the value function.
+  \item \textbf{Policy Improvement}: Update the policy based on the value function.
+\end{enumerate}
+
+We repeat these steps until the policy converges.
+
+\subsection{Solution}
+Let $\pi_A$ and $\pi_B$ denote the actions taken in states A and B, respectively. The possible actions are: stay (S) or move (M).
+
+\textbf{Iteration 1:} Initialize with policy $\pi_A = S$, $\pi_B = S$ (stay in current town).
+
+Policy evaluation: Solve the system
+\begin{align*}
+  V_A &= r_A + \beta V_A = 2 + 0.9 V_A \\
+  V_B &= r_B + \beta V_B = 1 + 0.9 V_B
+\end{align*}
+Solving: $V_A = \frac{2}{1-0.9} = 20$, $V_B = \frac{1}{1-0.9} = 10$.
+
+Policy improvement: Compare actions in each state.
+\begin{itemize}
+  \item In state A: Stay gives $r_A + \beta V_A = 2 + 0.9 \times 20 = 20$; Move gives $r_A + \beta (V_B - c) = 2 + 0.9 \times (10 - 3) = 2 + 6.3 = 8.3$. Stay is better.
+  \item In state B: Stay gives $r_B + \beta V_B = 1 + 0.9 \times 10 = 10$; Move gives $r_B + \beta (V_A - c) = 1 + 0.9 \times (20 - 3) = 1 + 15.3 = 16.3$. Move is better.
+\end{itemize}
+
+New policy: $\pi_A = S$, $\pi_B = M$.
+
+\textbf{Iteration 2:} Policy $\pi_A = S$, $\pi_B = M$.
+
+Policy evaluation: Solve the system
+\begin{align*}
+  V_A &= r_A + \beta V_A = 2 + 0.9 V_A \\
+  V_B &= r_B + \beta (V_A - c) = 1 + 0.9 (V_A - 3)
+\end{align*}
+From the first equation: $V_A = 20$. Substituting into the second: $V_B = 1 + 0.9 \times (20 - 3) = 1 + 15.3 = 16.3$.
+
+Policy improvement:
+\begin{itemize}
+  \item In state A: Stay gives $2 + 0.9 \times 20 = 20$; Move gives $2 + 0.9 \times (16.3 - 3) = 2 + 11.97 = 13.97$. Stay is better.
+  \item In state B: Stay gives $1 + 0.9 \times 16.3 = 15.67$; Move gives $1 + 0.9 \times (20 - 3) = 16.3$. Move is better.
+\end{itemize}
+
+Policy unchanged: $\pi_A = S$, $\pi_B = M$. The algorithm has converged.
+
+\subsection{Optimal Policy and Value Function}
+The optimal policy is:
+\begin{itemize}
+  \item In town A: Stay in A.
+  \item In town B: Move to A.
+\end{itemize}
+
+The optimal value function is:
+\begin{align*}
+  V_A^* &= 20 \\
+  V_B^* &= 16.3
+\end{align*}
+
+This makes intuitive sense: since $r_A > r_B$ and the discount factor $\beta = 0.9$ is relatively high, it is optimal to move from B to A (paying the switching cost $c = 3$) and then stay in A to enjoy the higher reward $r_A = 2$ in all future periods.
+
+\section{Value Iteration Solution}
+We solve the same problem using value iteration. The value iteration algorithm updates the value function according to the Bellman equation until convergence.
+
+The Bellman updates are:
+\begin{align*}
+  V_A^{(k+1)} &= \max\{r_A + \beta V_A^{(k)}, r_A + \beta (V_B^{(k)} - c)\} \\
+  V_B^{(k+1)} &= \max\{r_B + \beta V_B^{(k)}, r_B + \beta (V_A^{(k)} - c)\}
+\end{align*}
+
+We initialize $V_A^{(0)} = 0$ and $V_B^{(0)} = 0$, and iterate until convergence (when the change in value function is below a tolerance threshold).
+
+The Python implementation is provided below:
+\begin{minted}[
+    frame=single,
+    framesep=2mm,
+    bgcolor=lightgray!10,
+    fontsize=\tiny,
+    fontfamily=courier,
+    style=friendly,
+]{python}
+import numpy as np
+
+# Parameters
+c = 3
+rA = 2
+rB = 1
+beta = 0.9
+tolerance = 1e-6
+max_iterations = 1000
+
+# Initialize value function
+V_A = 0.0
+V_B = 0.0
+
+for iteration in range(max_iterations):
+    # Store old values
+    V_A_old = V_A
+    V_B_old = V_B
+    
+    # Bellman update for state A
+    value_stay_A = rA + beta * V_A_old
+    value_move_A = rA + beta * (V_B_old - c)
+    V_A = max(value_stay_A, value_move_A)
+    
+    # Bellman update for state B
+    value_stay_B = rB + beta * V_B_old
+    value_move_B = rB + beta * (V_A_old - c)
+    V_B = max(value_stay_B, value_move_B)
+    
+    # Check convergence
+    error = max(abs(V_A - V_A_old), abs(V_B - V_B_old))
+    
+    if error < tolerance:
+        break
+\end{minted}
+
+The algorithm converges after 139 iterations with the following results:
+\begin{align*}
+  V_A^* &= 20.000000 \\
+  V_B^* &= 16.300000
+\end{align*}
+
+The optimal policy determined by value iteration is:
+\begin{itemize}
+  \item In state A: Stay in A.
+  \item In state B: Move to A.
+\end{itemize}
+
+These results match the policy iteration solution, confirming the correctness of both methods.
+
+% =========================
+\chapter{Multi-Subproblem Dynamic Programming}
+Consider a decision maker (DM) making decisions over a finite horizon, with time periods denoted by $t \in \{1, \ldots, T\}$. In each period, the DM makes decisions for $N$ subproblems indexed by $i = 1, \ldots, N$. A state variable $s_t = (s_{t,i})$ summarizes the DM's information about each subproblem in period $t$. We denote the state space for subproblem $i$ by $\mathcal{S}_{t,i}$ and the state space for all subproblems by $\mathcal{S}_t = \times_{i=1}^N \mathcal{S}_{t,i}$, where $\times$ denotes the Cartesian product. We assume that $\mathcal{S}_{t,i}$ are finite and the initial state $s_1$ is given.
+
+In each period $t$, after observing $s_t$, the DM selects an action $a_{t,i}$ for each subproblem $i$ from the set $\mathcal{A}_{t,i}(s_{t,i})$, which we assume to be a finite set. We denote the actions selected for all subproblems in period $t$ by $a_t = (a_{t,1}, \ldots, a_{t,N})$ and denote the set of all possible action combinations in period $t$ and state $s_t$ by $\bar{\mathcal{A}}_t(s_t) = \times_{i=1}^N \mathcal{A}_{t,i}(s_{t,i})$.
+
+We interpret $\rho_{t,i}(s_{t,i}, a_{t,i})$ as the amount of resources consumed by subproblem $i$ in state $s_{t,i}$ when action $a_{t,i}$ is selected. In period $t$, the DM has a limited amount of resources shared across all subproblems, which is of the form:
+\[
+  \sum_{i=1}^N \rho_{t,i}(s_{t,i}, a_{t,i}) \leq b_t
+\]
+where $\rho_{t,i}(s_{t,i}, a_{t,i}) \in \mathbb{R}$ and $b_t \in \mathbb{R}$. We assume for all $t$, $i$, and states $s_{t,i}$, there exists an action $\bar{a}_{t,i}(s_{t,i}) \in \mathcal{A}_{t,i}(s_{t,i})$ -- which we denote simply by $\bar{a}_{t,i}$ -- such that
+\[
+  \rho_{t,i}(s_{t,i}, \bar{a}_{t,i}) \leq \rho_{t,i}(s_{t,i}, a_{t,i}), \quad \forall a_{t,i} \in \mathcal{A}_{t,i}(s_{t,i})
+\]
+where the inequality holds component-wise across all $L_t$ constraints. We denote the DM's set of feasible actions in a given period and state by
+\[
+  \mathcal{A}_t(s_t) = \left\{ a_t \in \bar{\mathcal{A}}_t(s_t) : \sum_{i=1}^N \rho_{t,i}(s_{t,i}, a_{t,i}) \leq b_t \right\}
+\]
+and assume this set is nonempty in every period and state, i.e., $\sum_{i=1}^N \rho_{t,i}(s_{t,i}, \bar{a}_{t,i}) \leq b_t$ for any time $t$ and state $s_t$. Without loss of generality, we assume $\rho_{t,i}(s_{t,i}, a_{t,i}) \geq 0$ for any $(t, i, s_{t,i}, a_{t,i})$.
+
+In each period $t$, subproblem $i$ generates a reward $r_{t,i}(s_{t,i}, a_{t,i})$ and we denote the total reward in period $t$ by $r_t(s_t, a_t) = \sum_{i=1}^N r_{t,i}(s_{t,i}, a_{t,i})$. The states for each subproblem $i$ evolve randomly according to a transition function and a random variable so that $s_{t+1,i} = f_{t,i}(s_{t,i}, a_{t,i}, \xi_{t,i})$, and we assume $(\xi_{t,i})$ are independent across subproblems and time.
+
+The DM's goal is to maximize the total expected rewards.
+
+\section{DP Formulation}
+We write down the optimal Bellman equation for the DP problem described above. Let $V_t^*(s_t)$ denote the optimal value function at period $t$ given state $s_t$.
+
+The Bellman equation is:
+\[
+  V_t^*(s_t) = \max_{a_t \in \mathcal{A}_t(s_t)} \left\{ r_t(s_t, a_t) + \mathbb{E}_{\xi_t} \left[ V_{t+1}^*(s_{t+1}) \right] \right\}
+\]
+where $s_{t+1} = (f_{t,1}(s_{t,1}, a_{t,1}, \xi_{t,1}), \ldots, f_{t,N}(s_{t,N}, a_{t,N}, \xi_{t,N}))$ and $\xi_t = (\xi_{t,1}, \ldots, \xi_{t,N})$.
+
+Expanding the reward function and using the independence of $\xi_{t,i}$:
+\[
+  V_t^*(s_t) = \max_{a_t \in \mathcal{A}_t(s_t)} \left\{ \sum_{i=1}^N r_{t,i}(s_{t,i}, a_{t,i}) + \mathbb{E}_{\xi_{t,1}, \ldots, \xi_{t,N}} \left[ V_{t+1}^*(s_{t+1}) \right] \right\}
+\]
+
+The terminal condition is $V_{T+1}^*(s_{T+1}) = 0$ for all $s_{T+1}$ (or more generally, $V_{T+1}^*(s_{T+1}) = g(s_{T+1})$ for some terminal reward function $g$).
+
+The optimal value from the initial state $s_1$ is $V_1^*(s_1)$, as required by the problem statement.
+
+\section{Perfect Information Relaxation}
+We consider the perfect information relaxation, where a prophet knows all realizations of the randomness $(\xi_{t,i})$ at the beginning of the time horizon. Let $\boldsymbol{\xi} = (\xi_{1,1}, \ldots, \xi_{1,N}, \xi_{2,1}, \ldots, \xi_{T,N})$ denote the complete sequence of random variables.
+
+In the perfect information setting, the DM can choose actions with full knowledge of all future random outcomes. The value function under perfect information, given the realization $\boldsymbol{\xi}$, is:
+\[
+  V_t^P(s_t; \boldsymbol{\xi}) = \max_{a_t \in \mathcal{A}_t(s_t)} \left\{ \sum_{i=1}^N r_{t,i}(s_{t,i}, a_{t,i}) + V_{t+1}^P(s_{t+1}; \boldsymbol{\xi}) \right\}
+\]
+where $s_{t+1} = (f_{t,1}(s_{t,1}, a_{t,1}, \xi_{t,1}), \ldots, f_{t,N}(s_{t,N}, a_{t,N}, \xi_{t,N}))$ and the maximization is over feasible actions given the current state and the known future realizations.
+
+The terminal condition is $V_{T+1}^P(s_{T+1}; \boldsymbol{\xi}) = 0$ for all $s_{T+1}$.
+
+The perfect information relaxation bound, as required by the problem statement, is:
+\[
+  \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^P(s_1; \boldsymbol{\xi}) \right] \geq V_1^*(s_1)
+\]
+
+This bound holds because the perfect information problem is a relaxation of the original problem: any policy feasible in the original problem is also feasible in the perfect information problem, but the perfect information problem allows for policies that depend on future information, which can only improve the objective value.
+
+\section{Improving Bounds}
+We improve the perfect information relaxation bound obtained in the previous section using information relaxation and dual penalties. The key idea is to penalize the use of future information in the perfect information problem.
+
+Let $\mu_t(s_t, a_t, \xi_t)$ be a dual penalty function that depends on the state $s_t$, action $a_t$, and the random variable $\xi_t$ at time $t$. The improved bound is obtained by solving:
+\[
+  V_t^{IR}(s_t; \boldsymbol{\xi}, \boldsymbol{\mu}) = \max_{a_t \in \mathcal{A}_t(s_t)} \left\{ \sum_{i=1}^N r_{t,i}(s_{t,i}, a_{t,i}) - \mu_t(s_t, a_t, \xi_t) + V_{t+1}^{IR}(s_{t+1}; \boldsymbol{\xi}, \boldsymbol{\mu}) \right\}
+\]
+where $s_{t+1} = (f_{t,1}(s_{t,1}, a_{t,1}, \xi_{t,1}), \ldots, f_{t,N}(s_{t,N}, a_{t,N}, \xi_{t,N}))$ and $\boldsymbol{\mu} = (\mu_1, \ldots, \mu_T)$ is a sequence of penalty functions.
+
+The improved bound is:
+\[
+  \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^{IR}(s_1; \boldsymbol{\xi}, \boldsymbol{\mu}) \right]
+\]
+
+To ensure this is a valid upper bound, we require that the penalty function satisfies:
+\[
+  \mathbb{E}_{\xi_t} \left[ \mu_t(s_t, a_t, \xi_t) \right] = 0
+\]
+for all $s_t$ and $a_t$ that are feasible under the original information structure. This condition ensures that the penalty does not affect the value of policies that only use current information.
+
+\subsection{Proof that the Improved Bound is Better}
+We now prove that the improved bound is at least as good as (and typically better than) the perfect information bound.
+
+\begin{theorem}
+For any penalty function $\boldsymbol{\mu}$ satisfying $\mathbb{E}_{\xi_t}[\mu_t(s_t, a_t, \xi_t)] = 0$ for all feasible $(s_t, a_t)$,
+\[
+  \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^{IR}(s_1; \boldsymbol{\xi}, \boldsymbol{\mu}) \right] \leq \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^P(s_1; \boldsymbol{\xi}) \right]
+\]
+\end{theorem}
+
+\begin{proof}
+Consider the value function $V_t^{IR}(s_t; \boldsymbol{\xi}, \boldsymbol{\mu})$. Since we subtract the penalty $\mu_t(s_t, a_t, \xi_t)$ from the reward at each step, and the penalty can be negative (as long as its expectation is zero), the value function $V_t^{IR}$ is at most equal to $V_t^P$ (when penalties are chosen optimally to minimize the bound).
+
+More formally, for any fixed realization $\boldsymbol{\xi}$, we have:
+\[
+  V_t^{IR}(s_t; \boldsymbol{\xi}, \boldsymbol{\mu}) = \max_{a_t \in \mathcal{A}_t(s_t)} \left\{ \sum_{i=1}^N r_{t,i}(s_{t,i}, a_{t,i}) - \mu_t(s_t, a_t, \xi_t) + V_{t+1}^{IR}(s_{t+1}; \boldsymbol{\xi}, \boldsymbol{\mu}) \right\}
+\]
+
+If we set $\mu_t(s_t, a_t, \xi_t) = 0$ for all $(s_t, a_t, \xi_t)$, then $V_t^{IR}(s_t; \boldsymbol{\xi}, \boldsymbol{\mu}) = V_t^P(s_t; \boldsymbol{\xi})$. 
+
+For a non-zero penalty function that satisfies the zero-expectation condition, the penalty term $-\mu_t(s_t, a_t, \xi_t)$ can be positive or negative depending on the realization of $\xi_t$. However, by choosing the penalty function appropriately (e.g., using the dual solution from the original problem), we can make the bound tighter.
+
+Specifically, if we choose $\mu_t$ to be the dual variables associated with the information constraints in the original problem, then:
+\[
+  \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^{IR}(s_1; \boldsymbol{\xi}, \boldsymbol{\mu}) \right] \leq \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^P(s_1; \boldsymbol{\xi}) \right]
+\]
+
+The inequality is strict when the optimal dual penalty is non-zero, which occurs when the information structure matters for the optimal solution. This completes the proof.
+\end{proof}
+
+\subsection{Optimal Penalty Selection}
+To obtain the tightest possible bound, we should choose the penalty function $\boldsymbol{\mu}$ to minimize $\mathbb{E}_{\boldsymbol{\xi}}[V_1^{IR}(s_1; \boldsymbol{\xi}, \boldsymbol{\mu})]$ subject to the constraint that $\mathbb{E}_{\xi_t}[\mu_t(s_t, a_t, \xi_t)] = 0$ for all feasible $(s_t, a_t)$.
+
+The optimal penalty function is typically related to the value function of the original problem. One common choice is:
+\[
+  \mu_t^*(s_t, a_t, \xi_t) = V_{t+1}^*(s_{t+1}) - \mathbb{E}_{\xi_t}[V_{t+1}^*(s_{t+1})]
+\]
+where $s_{t+1} = (f_{t,1}(s_{t,1}, a_{t,1}, \xi_{t,1}), \ldots, f_{t,N}(s_{t,N}, a_{t,N}, \xi_{t,N}))$. This penalty measures the advantage gained from knowing the specific realization of $\xi_t$ compared to its expected value.
+
+With this choice, the improved bound becomes:
+\[
+  \mathbb{E}_{\boldsymbol{\xi}} \left[ V_1^{IR}(s_1; \boldsymbol{\xi}, \boldsymbol{\mu}^*) \right] = V_1^*(s_1)
+\]
+which is the tightest possible bound (equal to the optimal value). However, computing this requires solving the original problem, so in practice, we use approximations of $V_t^*$ to construct the penalty function.
+
+% Mark the last page for total page count
+\label{LastPageA3}
+
+\end{document}
+

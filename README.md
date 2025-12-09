@@ -18,8 +18,36 @@ This repository contains my personal course assignments' solutions and source co
   - `prompt/` - Assignment PDF files
   - `code/` - Source code and data files
   - `tex/` - Compiled LaTeX documents
-  - `environment.yml` - Conda environment configuration
+  - `pyproject.toml` - Python project configuration (uv/venv)
   - `assignment_*.tex` - LaTeX source files
+
+## Environment Setup
+
+This project uses [uv](https://github.com/astral-sh/uv) for Python environment management. Each course folder has its own `pyproject.toml` file defining the project dependencies.
+
+### Setting up a project environment:
+
+```bash
+# Navigate to the course folder
+cd CourseCode-CourseTitle
+
+# Create and activate a virtual environment with uv
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+uv pip install -e .
+```
+
+### Using the environment:
+
+```bash
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Run Python scripts
+python code/your_script.py
+```
 
 ## Statement on Code Usage, Templates, and Plagiarism
 

@@ -1,0 +1,13 @@
+[project]
+name = "dda6040-dynamic-programming"
+version = "0.1.0"
+description = "DDA6040 - Dynamic Programming and Stochastic Control assignments"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+

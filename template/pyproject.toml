@@ -1,0 +1,21 @@
+[project]
+name = "assignment-template"
+version = "0.1.0"
+description = "Template for course assignments"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+# Uncomment as needed:
+# scikit-learn = ["scikit-learn"]
+# jupyter = ["jupyter", "ipython"]
+# opencv = ["opencv-python"]
+# scikit-image = ["scikit-image"]
+# pytorch = ["torch", "torchvision", "torchaudio"]
+
+

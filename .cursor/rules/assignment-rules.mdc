@@ -5,10 +5,13 @@ alwaysApply: true
     The project includes the `common_files` folder, the `template` folder, and all course-specific folders. Course folders should be named CourseCode-CourseTitle (e.g., CSC6001-AlgorithmAnalysis), with the Code and title found in `common_files\hand_book`.
     `common_files` include useful course information and some non-task-specific code (e.g., plotting styles, table generation)
     the `template` serves as a template for a course folder
-    each course folder should include 1. a assignment prompt file folder, 2. a code folder, 3. data and results (mainly images) folders under the code folder; 4. LaTeX code; 5. Conda environment configuration (`environment.yml`, as each course project's environment is managed separately). Each course may have multiple assignments, all placed in the same project folder.
+    each course folder should include 1. a assignment prompt file folder, 2. a code folder, 3. data and results (mainly images) folders under the code folder; 4. LaTeX code; 5. Python project configuration (`pyproject.toml`, as each course project's environment is managed separately). Each course may have multiple assignments, all placed in the same project folder.
 
-- Conda Environment Configuration:
-    The template includes a basic Conda environment template, containing the most fundamental libraries. Each course project has its own Conda environment, configured according to assignment requirements.
+- Python Environment Configuration:
+    The template includes a basic `pyproject.toml` template, containing the most fundamental libraries. Each course project has its own `pyproject.toml` file, configured according to assignment requirements. The project uses [uv](https://github.com/astral-sh/uv) for environment management.
 
 - Git Tracking:
     Ensure all files that should be uploaded to GitHub are properly tracked.
+
+- Python Environment Management:
+    The project uses uv for environment management. You should always run code with `uv run xxx.py`, manage dependencies with `uv add xxx` and `uv remove xxx`. When you first time write some code for a new course project, you should run `uv venv` to create a new virtual environment.

@@ -1,0 +1,13 @@
+[project]
+name = "csc6001-analysis-of-algorithms"
+version = "0.1.0"
+description = "CSC6001 - Analysis of Algorithms assignments"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+

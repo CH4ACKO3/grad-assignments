@@ -33,7 +33,7 @@
 
 
 \begin{abstract}
-Large Transformer models exhibit a remarkable capacity for in-context few-shot learning, enabling them to generalize to novel tasks from a few demonstrative examples. Despite extensive research into this phenomenon, its application to emulating structured algorithmic paradigms, particularly dynamic programming (DP), remains underexplored. This work provides empirical evidence that Transformers can function as in-context solvers for problems requiring dynamic programming. We specifically investigate this capability through the lens of the single-source shortest path (SSSP) problem on directed graphs. Our findings indicate that, beyond this specific case, Transformers can learn to effectively implement the recursive logic inherent in DP algorithms, suggesting their potential as general-purpose algorithmic executors for this problem class. Furthermore, we conduct a series of analyses to dissect the factors influencing this emergent capability, including training data composition and model architecture. A key finding reveals a strong positive correlation between the model's performance and the label diversity of graph nodes within the training corpus; greater diversity significantly enhances the model's capacity for in-context algorithmic execution.
+Large Transformer models exhibit a remarkable capacity for in-context few-shot learning, enabling them to generalize to novel tasks from a few demonstrative examples. Despite extensive research into this phenomenon, its application to emulating structured algorithmic paradigms, particularly dynamic programming (DP), remains underexplored. This work provides empirical evidence that Transformers can function as in-context solvers for problems requiring dynamic programming. We specifically investigate this capability through the lens of the single-source shortest path (SSSP) problem on directed graphs. Our findings indicate that, beyond this specific case, Transformers can learn to effectively implement the recursive logic inherent in DP algorithms, suggesting their potential as general-purpose algorithmic executors for this problem class. Furthermore, we conduct a series of analyses to dissect the factors influencing this emergent capability, with a focus on training data characteristics. A key finding reveals a strong positive correlation between the model's generalization performance and both the size of the training dataset and the diversity of node label mappings; larger, more diverse training data significantly enhances the model's capacity for in-context algorithmic execution. However, we also observe substantial variability in generalization performance across different random initializations, indicating that the optimization landscape contains multiple local minima with varying generalization properties.
 \end{abstract}
 
 \section{Introduction}
@@ -44,7 +44,7 @@ Despite these advances, the capacity of Transformers to emulate more complex, st
 
 This paper aims to bridge this gap by systematically investigating the ability of Transformers to function as in-context dynamic programming solvers. We select the single-source shortest path (SSSP) problem on directed graphs—a canonical exemplar of DP—as our primary testbed. The problem is framed as an autoregressive sequence generation task, where the model is trained to produce the step-by-step execution trace of a DP-based algorithm (e.g., a variant of Bellman-Ford or Dijkstra). Our empirical results provide compelling evidence that Transformers can indeed learn to approximate the iterative state updates and decision-making processes inherent to the DP algorithm, successfully solving SSSP instances not seen during training.
 
-Furthermore, we conduct a detailed analysis to delineate the factors conditioning this emergent algorithmic capability. A central finding of our investigation is the pivotal role of representational diversity in the training data. We demonstrate that the model's generalization performance on in-context DP tasks is critically dependent on the diversity of node labels used during training. Models exposed to a richer variety of label mappings exhibit significantly enhanced performance, suggesting that this diversity compels the model to learn the abstract, symbolic structure of the algorithm rather than relying on superficial correlations in the input sequences. This insight underscores the importance of data curation in unlocking the latent algorithmic reasoning abilities of large language models.
+Furthermore, we conduct a detailed analysis to delineate the factors conditioning this emergent algorithmic capability. A central finding of our investigation is the pivotal role of data characteristics in enabling generalization. We demonstrate that the model's generalization performance on in-context DP tasks is critically dependent on both the size of the training dataset and the diversity of node label mappings used during training. Models exposed to larger, more diverse training data exhibit significantly enhanced performance, suggesting that increased diversity compels the model to learn the abstract, symbolic structure of the algorithm rather than relying on superficial correlations in the input sequences. However, we also observe substantial variability in generalization performance across different random initializations, even under identical training conditions, indicating that the optimization landscape contains multiple local minima with varying generalization properties. This insight underscores the importance of data curation and training strategies in unlocking the latent algorithmic reasoning abilities of large language models.
 
 \section{Background and Related Work}
 
@@ -110,57 +110,55 @@ where $\text{close}$ events mark vertices being extracted from the priority queu
 
 \textbf{Training Format:} During training, the model receives the concatenated sequence $\text{prompt} \oplus \text{events}$ as input, where $\oplus$ denotes concatenation. The model is trained to predict the events sequence autoregressively, with loss computed only on the events portion (the prompt portion is masked out in the loss computation). This design allows the model to learn the mapping from graph structure to algorithmic execution trace.
 
-\subsection{Transformer Architecture for DP Solving}
-
-We employ a decoder-only Transformer architecture based on the LLaMA model family, which has been shown to be effective for in-context learning tasks. The model processes input sequences in an autoregressive manner, predicting the next token given all previous tokens through causal attention mechanisms.
-
-\textbf{Token Vocabulary:} The vocabulary consists of special tokens (e.g., $\text{pad}$, $\text{bos}$, $\text{eos}$, $\text{start}$, $\text{sink}$, $\text{edge}$, $\text{open}$, $\text{close}$, $\text{path}$), numerical tokens for edge weights and node distances (0-99), and node label tokens. Crucially, node labels $\text{node}_0$ through $\text{node}_7$ are randomly reassigned to different token ids for each training sample, within a specified range controlled by a hyperparameter that determines the diversity of node label representations. During evaluation, the node labels are sampled from a held-out label set, which is not seen during training. This randomization mechanism enforces the model to learn in-context DP algorithms, rather than memorizing specific node id sequences. 
-
-\textbf{Model Configuration:} The model uses a standard causal language modeling objective with cross-entropy loss. The vocabulary size is dynamically adjusted to accommodate the variable node label space. The architecture follows the standard LLaMA design with rotary position embeddings (RoPE) and grouped-query attention mechanisms, enabling efficient processing of variable-length sequences.
-
-\subsection{Training and Evaluation Setup}
-
-\textbf{Data Generation:} We generate synthetic directed graphs using a random graph generation procedure. For each graph, we sample an edge probability $p_{\text{edge}}$ uniformly from $[0, 1]$, and for each pair of vertices $(i, j)$, we include an directed edge with probability $p_{\text{edge}}$. Edge weights are sampled uniformly from integers in the range $[0, 9]$. Source and sink vertices are randomly selected from the vertex set. The Dijkstra algorithm is executed to generate the ground-truth (path finding) events sequence, which includes the complete execution trace from initialization to path reconstruction.
-
-\textbf{Node Label Diversity Mechanism:} A key aspect of our training setup is the node label randomization mechanism. For each training sample, node labels are randomly reassigned to different token ids, with the reassignment range controlled by a hyperparameter. This hyperparameter controls the diversity of node label representations: larger values allow for more diverse label mappings, forcing the model to learn abstract algorithmic patterns rather than memorizing specific node id sequences. This mechanism is applied independently for each sample, ensuring that the same graph structure can appear with different node label encodings across training iterations.
-
-\textbf{Training Procedure:} The model is trained using standard next-token prediction with cross-entropy loss. Training employs gradient accumulation, where gradients are accumulated over multiple mini-batches before performing a parameter update when a target effective batch size is reached. The loss is computed only on the events portion of each sequence, with the prompt portion masked out in the loss computation. We also use cosine learning rate scheduling and gradient clipping for training stability.
-
-\textbf{Evaluation Metrics:} We evaluate the model's performance using several metrics: (1) \textit{Algorithmic correctness}, provide the model with the graph prompt, assessing whether the generated execution trace corresponds to a valid Dijkstra algorithm execution; (2) \textit{Perplexity}, To better evaluate the failure cases, we also evaluate the model with ground-truth evaluate sequences, in teacher-forcing manner, and observing the perplexity of the output sequence, position-wisely. The evaluation dataset is held out from the training data (90\% train, 10\% evaluation split).
-
-\textbf{Experimental Variations:} To investigate the factors affecting the Transformer's DP-solving ability, we conduct controlled experiments varying: (1) the hyperparameter controlling node label diversity, (2) model size configurations (small, medium, large), (3) training hyperparameters (learning rate, batch size, number of epochs), and (4) graph generation parameters (edge probability distributions, weight ranges).
-
 \section{Experiments}
 
-\subsection{Baseline: Transformer as DP Solver}
-\lipsum[1]
-\subsection{Effect of Data Characteristics}
+\subsection{Experimental Setup}
 
-\subsubsection{Impact of Graph Node Label Diversity}
+We employ a decoder-only Transformer architecture based on the LLaMA model family. The vocabulary consists of special tokens, numerical tokens (0-99), and node label tokens. Node labels are randomly reassigned to different token IDs for each training sample, with the reassignment range controlled by a hyperparameter determining label diversity. During evaluation, node labels are sampled from a held-out label set unseen during training.
 
-\subsubsection{Training Data Distribution}
+We generate synthetic directed graphs by sampling edge probability $p_{\text{edge}}$ uniformly from $[0, 1]$ and including directed edges with probability $p_{\text{edge}}$. Edge weights are sampled uniformly from integers in $[0, 9]$. Source and sink vertices are randomly selected, and the Dijkstra algorithm generates ground-truth execution traces. The model is trained using standard next-token prediction with cross-entropy loss, with loss computed only on the events portion.
 
-\subsection{Effect of Model Aspects}
+\subsection{Experimental Design}
 
-\subsubsection{Model Size and Capacity}
+We systematically vary two data characteristics: (1) training dataset size (1,000, 10,000, 100,000 samples), and (2) node label diversity (10, 100, 1,000 distinct mappings), yielding nine configurations. For each configuration, we maintain a fixed total number of training steps and repeat with four random seeds, resulting in 36 training runs.
 
-\subsubsection{Architecture Variations}
+Throughout training, we monitor: (1) \textit{training loss} (cross-entropy on training set), (2) \textit{success rate} (fraction of test instances with valid shortest path solutions), and (3) \textit{perplexity (PPL)} (evaluated on held-out test set using teacher-forcing). The evaluation dataset is 1,000 samples held out from training data.
 
-\section{Results and Analysis}
+\subsection{Results}
 
-\subsection{Performance on Shortest Path Problems}
+Our results demonstrate that Transformers can learn to solve SSSP problems, with performance varying significantly across configurations and random initializations. While all models achieve low training loss, generalization to held-out test instances reveals substantial variation.
 
-\subsection{In-Context Learning Capabilities}
+Figure~\ref{fig:training_curves} shows training dynamics across configurations. Models that successfully learn generalizable algorithms show steady increases in test success rate alongside decreasing test perplexity, whereas models that fail to generalize maintain high test perplexity and low success rates despite low training loss.
 
-\subsection{Key Observations}
+\subsubsection{Stochasticity and Generalization}
+
+A striking finding is significant variability in generalization performance across random seeds under identical conditions. For a given configuration, different initializations lead to dramatically different outcomes: some seeds achieve near-perfect test performance, while others fail to generalize beyond memorized patterns.
+
+Figure~\ref{fig:seed_variability} illustrates this phenomenon. With dataset size 1,000 and label diversity 10, test success rates across four seeds range from approximately 15\% to 85\%, indicating high sensitivity to initialization. This suggests the optimization landscape contains multiple local minima with varying generalization properties.
+
+\subsubsection{Impact of Data Characteristics}
+
+Figure~\ref{fig:data_characteristics} summarizes the relationship between data characteristics and average test success rate. We observe a strong positive correlation between dataset size and generalization performance. Models trained on 100,000 samples consistently outperform those trained on smaller datasets, with larger datasets also reducing variance across random seeds.
+
+Similarly, increasing label diversity improves generalization. Models trained with 1,000 distinct mappings consistently outperform those with 10 or 100 mappings across all dataset sizes. Limited diversity allows models to learn associations between specific node labels and algorithmic steps, which break down on held-out label sets.
+
+The benefits are complementary: the configuration with 100,000 samples and 1,000 label mappings achieves the highest and most consistent performance, with all four seeds achieving test success rates above 90\%. Conversely, the configuration with 1,000 samples and 10 label mappings shows the highest variability and lowest average performance.
 
 \section{Discussion}
 
-\subsection{Implications for General-Purpose DP Solvers}
+Our findings have several implications for developing general-purpose DP solvers. The observed sensitivity to random initialization suggests training strategies should incorporate multiple random seeds and potentially ensemble methods. The strong correlation between data diversity and generalization performance highlights the critical importance of data curation: simply scaling up training data is insufficient if it lacks representational diversity.
 
-\subsection{Limitations and Future Work}
+The distinction between training convergence and generalization success indicates that training loss alone is inadequate for assessing whether a model has learned a generalizable algorithm. Evaluation must explicitly test generalization to held-out distributions. The success of Transformers in learning DP algorithms, despite lacking explicit mechanisms for structured memory or recursive logic, suggests the in-context learning paradigm may be more powerful than previously recognized.
+
+Our investigation is limited to SSSP on graphs of fixed size (8 vertices). Extending to other DP problems (longest common subsequence, edit distance, knapsack) and larger graph sizes would strengthen our conclusions. Future work could investigate how architectural choices interact with data characteristics, analyze the optimization landscape to understand why certain seeds lead to generalizable solutions, and explore more efficient training strategies.
 
 \section{Conclusion}
+
+This work demonstrates that Transformers can function as in-context solvers for dynamic programming problems, specifically learning and executing the single-source shortest path algorithm. Our investigation reveals that generalization is highly sensitive to both training data characteristics and random initialization.
+
+A central finding is the critical role of data diversity: both dataset size and node label diversity significantly influence the likelihood of learning generalizable algorithmic patterns. We also observe substantial variability across random seeds, suggesting the optimization landscape contains multiple local minima with varying generalization properties.
+
+These findings underscore the importance of careful data curation and robust evaluation protocols that explicitly test generalization. While challenges remain, our results suggest Transformers may hold promise as general-purpose executors of dynamic programming algorithms.
 
 \appendix
 \section{Appendix}

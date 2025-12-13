@@ -17,6 +17,12 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 \usepackage{lipsum}         % lorem ipsum text
+\usepackage{graphicx}       % for including images
+\usepackage{svg}            % for SVG support (auto-converts to PDF during compilation)
+% If Inkscape is not in PATH, uncomment and set the path below:
+% \svgpath{/path/to/inkscape/}
+% For Windows, it might be something like:
+% \svgpath{C:/Program Files/Inkscape/bin/inkscape.exe}
 
 
 \title{Transformers as Dynamic Programming Solvers\thanks{This manuscript serves as the final project for the course DDA6040.}}
@@ -33,7 +39,7 @@
 
 
 \begin{abstract}
-Large Transformer models exhibit a remarkable capacity for in-context few-shot learning, enabling them to generalize to novel tasks from a few demonstrative examples. Despite extensive research into this phenomenon, its application to emulating structured algorithmic paradigms, particularly dynamic programming (DP), remains underexplored. This work provides empirical evidence that Transformers can function as in-context solvers for problems requiring dynamic programming. We specifically investigate this capability through the lens of the single-source shortest path (SSSP) problem on directed graphs. Our findings indicate that, beyond this specific case, Transformers can learn to effectively implement the recursive logic inherent in DP algorithms, suggesting their potential as general-purpose algorithmic executors for this problem class. Furthermore, we conduct a series of analyses to dissect the factors influencing this emergent capability, with a focus on training data characteristics. A key finding reveals a strong positive correlation between the model's generalization performance and both the size of the training dataset and the diversity of node label mappings; larger, more diverse training data significantly enhances the model's capacity for in-context algorithmic execution. However, we also observe substantial variability in generalization performance across different random initializations, indicating that the optimization landscape contains multiple local minima with varying generalization properties.
+Large Transformer models exhibit a remarkable capacity for in-context few-shot learning, enabling them to generalize to novel tasks from a few demonstrative examples. Despite extensive research into this phenomenon, its application to emulating structured algorithmic paradigms, particularly dynamic programming (DP), remains underexplored. This work provides empirical evidence that Transformers can function as in-context solvers for problems requiring dynamic programming. We specifically investigate this capability through the lens of the single-source shortest path (SSSP) problem on directed graphs. Our findings indicate that, beyond this specific case, Transformers can learn to effectively implement the recursive logic inherent in DP algorithms, suggesting their potential as general-purpose algorithmic executors for this problem class. Furthermore, we conduct a series of analyses to dissect the factors influencing this emergent capability, with a focus on training data characteristics. A key finding reveals a strong positive correlation between the model's generalization performance and the size of the training dataset (graph diversity); larger training datasets significantly enhance the model's capacity for in-context algorithmic execution. However, the diversity of node label mappings appears unable to improve results, suggesting that "diversity" requires a certain sense of "non-isomorphic" data. However, we also observe substantial variability in generalization performance across different random initializations, indicating that the optimization landscape contains multiple local minima with varying generalization properties.
 \end{abstract}
 
 \section{Introduction}
@@ -44,7 +50,7 @@ Despite these advances, the capacity of Transformers to emulate more complex, st
 
 This paper aims to bridge this gap by systematically investigating the ability of Transformers to function as in-context dynamic programming solvers. We select the single-source shortest path (SSSP) problem on directed graphs—a canonical exemplar of DP—as our primary testbed. The problem is framed as an autoregressive sequence generation task, where the model is trained to produce the step-by-step execution trace of a DP-based algorithm (e.g., a variant of Bellman-Ford or Dijkstra). Our empirical results provide compelling evidence that Transformers can indeed learn to approximate the iterative state updates and decision-making processes inherent to the DP algorithm, successfully solving SSSP instances not seen during training.
 
-Furthermore, we conduct a detailed analysis to delineate the factors conditioning this emergent algorithmic capability. A central finding of our investigation is the pivotal role of data characteristics in enabling generalization. We demonstrate that the model's generalization performance on in-context DP tasks is critically dependent on both the size of the training dataset and the diversity of node label mappings used during training. Models exposed to larger, more diverse training data exhibit significantly enhanced performance, suggesting that increased diversity compels the model to learn the abstract, symbolic structure of the algorithm rather than relying on superficial correlations in the input sequences. However, we also observe substantial variability in generalization performance across different random initializations, even under identical training conditions, indicating that the optimization landscape contains multiple local minima with varying generalization properties. This insight underscores the importance of data curation and training strategies in unlocking the latent algorithmic reasoning abilities of large language models.
+Furthermore, we conduct a detailed analysis to delineate the factors conditioning this emergent algorithmic capability. A central finding of our investigation is the pivotal role of data characteristics in enabling generalization. We demonstrate that the model's generalization performance on in-context DP tasks is critically dependent on the size of the training dataset (graph diversity). Models exposed to larger training datasets exhibit significantly enhanced performance, suggesting that increased graph diversity compels the model to learn the abstract, symbolic structure of the algorithm rather than relying on superficial correlations in the input sequences. However, the diversity of node label mappings appears unable to improve results, suggesting that "diversity" requires a certain sense of "non-isomorphic" data. However, we also observe substantial variability in generalization performance across different random initializations, even under identical training conditions, indicating that the optimization landscape contains multiple local minima with varying generalization properties. This insight underscores the importance of data curation and training strategies in unlocking the latent algorithmic reasoning abilities of large language models.
 
 \section{Background and Related Work}
 
@@ -53,10 +59,10 @@ Furthermore, we conduct a detailed analysis to delineate the factors conditionin
 The capability of Transformers to learn functions in-context has been a major focus of recent theoretical machine learning research.
 
 \begin{itemize}
-    \item \textbf{Linear Function Learning:} Garg et al. (2022) and Akyürek et al. (2022) established that Transformers can learn linear regression in-context, effectively implementing OLS or Gradient Descent. This laid the groundwork for viewing ICL as ``algorithmic.''
-    \item \textbf{Complexity Hierarchy:} Bhattamishra et al. (2023) explored the complexity classes Transformers can handle, showing they can learn simple Boolean functions but struggle with complex automata without CoT.
-    \item \textbf{Algorithmic Emulation:} Hu et al. (2025) proved that fixed-weight Transformers can emulate a broad class of algorithms via prompting, effectively acting as ``prompt-programmable'' machines.
-    \item \textbf{In-Context TD Learning:} Wang et al. (2024) demonstrated that Transformers can perform Temporal Difference learning in-context, a direct link to the Bellman updates used in DP.
+    \item \textbf{Linear Function Learning:} \cite{garg2022} and \cite{akyurek2022} established that Transformers can learn linear regression in-context, effectively implementing OLS or Gradient Descent. This laid the groundwork for viewing ICL as ``algorithmic.''
+    \item \textbf{Complexity Hierarchy:} \cite{bhattamishra2023} explored the complexity classes Transformers can handle, showing they can learn simple Boolean functions but struggle with complex automata without CoT.
+    \item \textbf{Algorithmic Emulation:} \cite{hu2025} proved that fixed-weight Transformers can emulate a broad class of algorithms via prompting, effectively acting as ``prompt-programmable'' machines.
+    \item \textbf{In-Context TD Learning:} \cite{wang2024} demonstrated that Transformers can perform Temporal Difference learning in-context, a direct link to the Bellman updates used in DP.
 \end{itemize}
 
 \subsection{Chain-of-Thought (CoT) and ``Scratchpads''}
@@ -64,18 +70,18 @@ The capability of Transformers to learn functions in-context has been a major fo
 For DP problems, which require storing intermediate states, standard ICL (predicting the answer directly) is often insufficient.
 
 \begin{itemize}
-    \item \textbf{CoT for DP:} Cheng et al. (2023) and Zhou et al. (2023) theoretically and empirically showed that CoT enables Transformers to solve DP problems like Longest Increasing Subsequence (LIS) and Edit Distance. The CoT effectively ``unrolls'' the DP table into the context window.
-    \item \textbf{Scratchpads:} Nye et al. (2021) introduced the ``scratchpad'' concept, allowing the model to write out intermediate computation steps. This is crucial for SSSP on large graphs, as the path finding requires transitive steps.
-    \item \textbf{Recursion of Thought:} Lee et al. (2023) extended this to ``Recursion of Thought,'' using a divide-and-conquer strategy to solve problems too large for a single context.
-    \item \textbf{Transformer Learning $A^*$ Algorithm:} Lehnert et al. (2024) showed that Transformers can learn the $A^*$ algorithm in grid world pathfinding and Sokoban problems, showing the potential of Transformers to learn complex algorithms.
+    \item \textbf{CoT for DP:} \cite{cheng2023} and \cite{zhou2023} theoretically and empirically showed that CoT enables Transformers to solve DP problems like Longest Increasing Subsequence (LIS) and Edit Distance. The CoT effectively ``unrolls'' the DP table into the context window.
+    \item \textbf{Scratchpads:} \cite{nye2021} introduced the ``scratchpad'' concept, allowing the model to write out intermediate computation steps. This is crucial for SSSP on large graphs, as the path finding requires transitive steps.
+    \item \textbf{Recursion of Thought:} \cite{lee2023} extended this to ``Recursion of Thought,'' using a divide-and-conquer strategy to solve problems too large for a single context.
+    \item \textbf{Transformer Learning $A^*$ Algorithm:} \cite{lehnert2024} showed that Transformers can learn the $A^*$ algorithm in grid world pathfinding and Sokoban problems, showing the potential of Transformers to learn complex algorithms.
 \end{itemize}
 
 \subsection{Neural Algorithmic Reasoning (NAR)}
 
 \begin{itemize}
-    \item \textbf{DeepMind's CLRS:} Veličković et al. (2022) established the CLRS-30 benchmark, pushing for models that align with classical algorithms (Bellman-Ford, Prim's, etc.). They emphasize ``Algorithmic Alignment''—the architecture should match the algorithm.
-    \item \textbf{Multiple Solutions:} Georgiev et al. (2024) explored NAR for problems with multiple correct solutions (like SSSP on unweighted graphs), arguing that models should learn the distribution of solutions.
-    \item \textbf{Knapsack \& Pseudo-Polynomial:} Pozgaj et al. (2025) extended NAR to pseudo-polynomial problems like Knapsack, using DP table supervision.
+    \item \textbf{DeepMind's CLRS:} \cite{velickovic2022} established the CLRS-30 benchmark, pushing for models that align with classical algorithms (Bellman-Ford, Prim's, etc.). They emphasize ``Algorithmic Alignment''—the architecture should match the algorithm.
+    \item \textbf{Multiple Solutions:} \cite{georgiev2024} explored NAR for problems with multiple correct solutions (like SSSP on unweighted graphs), arguing that models should learn the distribution of solutions.
+    \item \textbf{Knapsack \& Pseudo-Polynomial:} \cite{pozgaj2025} extended NAR to pseudo-polynomial problems like Knapsack, using DP table supervision.
 \end{itemize}
 
 \section{Methodology}
@@ -108,6 +114,16 @@ where $\text{node}_s$ and $\text{node}_g$ denote the source and sink vertices, a
 where $\text{close}$ events mark vertices being extracted from the priority queue with their final distances, $\text{open}$ events mark vertices being added or updated in the queue, and $\text{path}$ events trace the shortest path from sink to source\footnotemark[1] by backtracking.
 \footnotetext[1]{When reconstructing the shortest path, we output the path in a backward manner, from the sink to the source. This is because if we output the path from the source to the sink, finding the next node starting from the source (given the pathfinding process) would have a linear time complexity, which is computationally impossible for transformers (with constant computation). Nevertheless, in practice, we found that both methods work, but we still adopt the more reasonable approach.}
 
+Figure~\ref{fig:encoding} illustrates how a directed graph is encoded into a token sequence that the Transformer can process. The encoding transforms the graph structure and query into a sequential format, where nodes, edges, and their weights are represented as discrete tokens, enabling the model to learn the mapping from graph representations to algorithmic execution traces.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{code/result/encode.png}
+    \caption{A schematic diagram of encoding a directed graph into a Transformer-processed token sequence.
+The graph structure (nodes and weighted edges) and queries (source and sink nodes) are converted into a sequential token representation, where each component (node, edge, weight, and algorithmic event) is mapped to discrete tokens that the model can process autoregressively. In this diagram, node 1 is the source, and node 7 is the sink, with the actual shortest blue path highlighted.}
+    \label{fig:encoding}
+\end{figure}
+
 \textbf{Training Format:} During training, the model receives the concatenated sequence $\text{prompt} \oplus \text{events}$ as input, where $\oplus$ denotes concatenation. The model is trained to predict the events sequence autoregressively, with loss computed only on the events portion (the prompt portion is masked out in the loss computation). This design allows the model to learn the mapping from graph structure to algorithmic execution trace.
 
 \section{Experiments}
@@ -126,23 +142,45 @@ Throughout training, we monitor: (1) \textit{training loss} (cross-entropy on tr
 
 \subsection{Results}
 
-Our results demonstrate that Transformers can learn to solve SSSP problems, with performance varying significantly across configurations and random initializations. While all models achieve low training loss, generalization to held-out test instances reveals substantial variation.
+Our results demonstrate that Transformers can learn to solve SSSP problems, though generalization performance varies significantly across configurations and random initializations, often despite achieving low training loss.
 
-Figure~\ref{fig:training_curves} shows training dynamics across configurations. Models that successfully learn generalizable algorithms show steady increases in test success rate alongside decreasing test perplexity, whereas models that fail to generalize maintain high test perplexity and low success rates despite low training loss.
+Figure~\ref{fig:training_curves} illustrates these training dynamics. Models that successfully generalize exhibit steady increases in test success rate alongside decreasing test perplexity, while those that fail to generalize maintain high test perplexity and low success rates.
 
-\subsubsection{Stochasticity and Generalization}
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.48\textwidth}
+\centering
+\includesvg[width=\textwidth]{code/result/loss.svg}
+\label{fig:loss}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\includesvg[width=\textwidth]{code/result/perplexity.svg}
+\label{fig:perplexity}
+\end{minipage}
+\caption{Training dynamics: (left) training loss and (right) test perplexity across different dataset sizes and label diversity settings.}
+\label{fig:training_curves}
+\end{figure}
 
-A striking finding is significant variability in generalization performance across random seeds under identical conditions. For a given configuration, different initializations lead to dramatically different outcomes: some seeds achieve near-perfect test performance, while others fail to generalize beyond memorized patterns.
+\subsubsection{Factors Influencing Generalization: Stochasticity and Data Characteristics}
 
-Figure~\ref{fig:seed_variability} illustrates this phenomenon. With dataset size 1,000 and label diversity 10, test success rates across four seeds range from approximately 15\% to 85\%, indicating high sensitivity to initialization. This suggests the optimization landscape contains multiple local minima with varying generalization properties.
+A interesting finding is the significant variability in generalization performance across random seeds, even under identical conditions. Different initializations can lead to dramatically different outcomes, with some seeds achieving near-perfect test performance while others fail to generalize beyond memorized patterns. This suggests the optimization landscape contains multiple local minima with varying generalization properties.
 
-\subsubsection{Impact of Data Characteristics}
+Figure~\ref{fig:data_characteristics} vividly illustrates both this stochasticity and the impact of data characteristics on generalization. For instance, with a dataset size of 10,000 and label diversity of 10, test success rates across four seeds range from approximately 15\% to 45\%, highlighting high sensitivity to initialization.
 
-Figure~\ref{fig:data_characteristics} summarizes the relationship between data characteristics and average test success rate. We observe a strong positive correlation between dataset size and generalization performance. Models trained on 100,000 samples consistently outperform those trained on smaller datasets, with larger datasets also reducing variance across random seeds.
+Beyond stochasticity, Figure~\ref{fig:data_characteristics} also summarizes the relationship between data characteristics and average test success rate. We observe a strong positive correlation between dataset size and generalization performance. Models trained on 100,000 samples consistently outperform those trained on smaller datasets, with larger datasets also significantly reducing variance across random seeds.
 
-Similarly, increasing label diversity improves generalization. Models trained with 1,000 distinct mappings consistently outperform those with 10 or 100 mappings across all dataset sizes. Limited diversity allows models to learn associations between specific node labels and algorithmic steps, which break down on held-out label sets.
+\begin{figure}[htbp]
+\centering
+\includesvg[width=0.8\textwidth]{code/result/success_rate.svg}
+\caption{Average test success rate under different dataset sizes (num) and label diversity (classes). This demonstrates the crucial role of graph diversity (dataset size) in achieving generalization, while label diversity shows no positive effect.}
+\label{fig:data_characteristics}
+\end{figure}
 
-The benefits are complementary: the configuration with 100,000 samples and 1,000 label mappings achieves the highest and most consistent performance, with all four seeds achieving test success rates above 90\%. Conversely, the configuration with 1,000 samples and 10 label mappings shows the highest variability and lowest average performance.
+Conversely, increasing node label diversity does not appear to consistently improve generalization. While performance varies across different label diversity settings, this variation does not consistently correlate with label diversity across dataset sizes. This suggests that effective "diversity" for generalization requires variations in graph structure rather than merely in label assignments.
+
+Indeed, the configuration with 100,000 samples achieves the highest performance, with all four seeds achieving test success rates above 90\%, irrespective of label diversity, underscoring that graph diversity, primarily driven by dataset size, is the paramount factor influencing generalization.
 
 \section{Discussion}
 
@@ -156,12 +194,24 @@ Our investigation is limited to SSSP on graphs of fixed size (8 vertices). Exten
 
 This work demonstrates that Transformers can function as in-context solvers for dynamic programming problems, specifically learning and executing the single-source shortest path algorithm. Our investigation reveals that generalization is highly sensitive to both training data characteristics and random initialization.
 
-A central finding is the critical role of data diversity: both dataset size and node label diversity significantly influence the likelihood of learning generalizable algorithmic patterns. We also observe substantial variability across random seeds, suggesting the optimization landscape contains multiple local minima with varying generalization properties.
+A central finding is the critical role of graph diversity (dataset size): higher graph diversity significantly increases the likelihood of learning generalizable algorithmic patterns. However, node label diversity appears unable to improve results, suggesting that "diversity" requires a certain sense of "non-isomorphic" data. We also observe substantial variability across random seeds, suggesting the optimization landscape contains multiple local minima with varying generalization properties.
 
 These findings underscore the importance of careful data curation and robust evaluation protocols that explicitly test generalization. While challenges remain, our results suggest Transformers may hold promise as general-purpose executors of dynamic programming algorithms.
 
-\appendix
-\section{Appendix}
-You may include other additional sections here.
-
+\begin{thebibliography}{99} % The number 99 is a placeholder for the widest label
+\bibitem{garg2022} Garg, S.\ et al.\ (2022) Transformers as Algorithms: Generalization and Stability in In-context Learning. arXiv:2301.07067. \url{https://arxiv.org/abs/2301.07067}
+\bibitem{akyurek2022} Akyürek, E.\ et al.\ (2022) The Effects of Pretraining Task Diversity on In-Context Learning of Ridge Regression. OpenReview. \url{https://openreview.net/pdf?id=EshX_qlA3o}
+\bibitem{bhattamishra2023} Bhattamishra, R.\ et al.\ (2023) Understanding In-Context Learning in Transformers and LLMs by Learning to Learn Discrete Functions. arXiv:2310.03016. \url{https://arxiv.org/abs/2310.03016}
+\bibitem{hu2025} Hu, Y.\ et al.\ (2025) In-Context Algorithm Emulation in Fixed-Weight Transformers. arXiv:2508.17550. \url{https://arxiv.org/abs/2508.17550}
+\bibitem{wang2024} Wang, Y.\ et al.\ (2024) Transformers Learn Temporal Difference Methods for In-Context Reinforcement Learning. OpenReview. \url{https://openreview.net/pdf?id=mEqddgqf5w}
+\bibitem{cheng2023} Cheng, Y.\ et al.\ (2023) Towards Revealing the Mystery behind Chain of Thought: A Theoretical Perspective. arXiv:2305.15408. \url{https://arxiv.org/html/2305.15408v5}
+\bibitem{nye2021} Nye, M.\ et al.\ (2021) Show Your Work: Scratchpads for Intermediate Computation with Language Models. OpenReview. \url{https://openreview.net/forum?id=iedYJm92o0a}
+\bibitem{lee2023} Lee, J.\ et al.\ (2023) Recursion of Thought Prompting: Solving Complex Tasks Beyond Context Limits. LearnPrompting.org. \url{https://learnprompting.org/docs/advanced/decomposition/recursion_of_thought}
+% The following citations were not found in the provided reference list:
+% \bibitem{zhou2023} (No direct match found in the provided list)
+% \bibitem{lehnert2024} (No direct match found in the provided list)
+% \bibitem{velickovic2022} (No direct match found in the provided list)
+\bibitem{georgiev2024} Georgiev, N.\ et al.\ (2024) Neural Algorithmic Reasoning with Multiple Correct Solutions. arXiv:2409.06953. \url{https://arxiv.org/html/2409.06953v4}
+\bibitem{pozgaj2025} Pozgaj, D.\ et al.\ (2025) KNARsack: Teaching Neural Algorithmic Reasoners to Solve Pseudo-Polynomial Problems. arXiv:2509.15239. \url{https://arxiv.org/abs/2509.15239}
+\end{thebibliography}
 \end{document}

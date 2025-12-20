@@ -11,7 +11,7 @@
 % 代码高亮
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage[outputdir=tex]{minted}
+\usepackage{minted}
 
 % 图表包
 \usepackage{graphicx}
@@ -139,7 +139,7 @@ For $\partial \boldsymbol{a} / \partial \mathbf{V}$, we can expand it according 
         \frac{\partial a_1}{\partial \mathbf{V}} \\
         \vdots                                   \\
         \frac{\partial a_C}{\partial \mathbf{V}}
-    \end{pmatrix} \in \mathbb{R}^{C \times (C \times K)}
+    \end{pmatrix} \in \mathbb{R}^{C \times (C \times K)^\top}
 \end{align*}
 Note that $a_c=\sum_{k=1}^{K} V_{ck} h_k + {b_2}_c$, thus:
 \begin{align*}

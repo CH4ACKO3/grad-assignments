@@ -12,3 +12,6 @@ alwaysApply: true
 
 - Git Tracking:
     Ensure all files that should be uploaded to GitHub are properly tracked.
+
+- MCP Rules:
+    You can use the pdf-reader-mcp to read the assignment prompts. When uploading file, use relative paths in windows format.

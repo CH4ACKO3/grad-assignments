@@ -59,10 +59,10 @@ Furthermore, we conduct a detailed analysis to delineate the factors conditionin
 The capability of Transformers to learn functions in-context has been a major focus of recent theoretical machine learning research.
 
 \begin{itemize}
-    \item \textbf{Linear Function Learning:} \cite{garg2022} and \cite{akyurek2022} established that Transformers can learn linear regression in-context, effectively implementing OLS or Gradient Descent. This laid the groundwork for viewing ICL as ``algorithmic.''
-    \item \textbf{Complexity Hierarchy:} \cite{bhattamishra2023} explored the complexity classes Transformers can handle, showing they can learn simple Boolean functions but struggle with complex automata without CoT.
-    \item \textbf{Algorithmic Emulation:} \cite{hu2025} proved that fixed-weight Transformers can emulate a broad class of algorithms via prompting, effectively acting as ``prompt-programmable'' machines.
-    \item \textbf{In-Context TD Learning:} \cite{wang2024} demonstrated that Transformers can perform Temporal Difference learning in-context, a direct link to the Bellman updates used in DP.
+    \item \textbf{Linear Function Learning:} \citet{garg2022} and \citet{akyurek2022} established that Transformers can learn linear regression in-context, effectively implementing OLS or Gradient Descent. This laid the groundwork for viewing ICL as ``algorithmic.''
+    \item \textbf{Complexity Hierarchy:} \citet{bhattamishra2023} explored the complexity classes Transformers can handle, showing they can learn simple Boolean functions but struggle with complex automata without CoT.
+    \item \textbf{Algorithmic Emulation:} \citet{hu2025} proved that fixed-weight Transformers can emulate a broad class of algorithms via prompting, effectively acting as ``prompt-programmable'' machines.
+    \item \textbf{In-Context TD Learning:} \citet{wang2024} demonstrated that Transformers can perform Temporal Difference learning in-context, a direct link to the Bellman updates used in DP.
 \end{itemize}
 
 \subsection{Chain-of-Thought (CoT) and ``Scratchpads''}
@@ -70,18 +70,18 @@ The capability of Transformers to learn functions in-context has been a major fo
 For DP problems, which require storing intermediate states, standard ICL (predicting the answer directly) is often insufficient.
 
 \begin{itemize}
-    \item \textbf{CoT for DP:} \cite{cheng2023} and \cite{zhou2023} theoretically and empirically showed that CoT enables Transformers to solve DP problems like Longest Increasing Subsequence (LIS) and Edit Distance. The CoT effectively ``unrolls'' the DP table into the context window.
-    \item \textbf{Scratchpads:} \cite{nye2021} introduced the ``scratchpad'' concept, allowing the model to write out intermediate computation steps. This is crucial for SSSP on large graphs, as the path finding requires transitive steps.
-    \item \textbf{Recursion of Thought:} \cite{lee2023} extended this to ``Recursion of Thought,'' using a divide-and-conquer strategy to solve problems too large for a single context.
-    \item \textbf{Transformer Learning $A^*$ Algorithm:} \cite{lehnert2024} showed that Transformers can learn the $A^*$ algorithm in grid world pathfinding and Sokoban problems, showing the potential of Transformers to learn complex algorithms.
+    \item \textbf{CoT for DP:} \citet{cheng2023} theoretically and empirically showed that CoT enables Transformers to solve DP problems like Longest Increasing Subsequence (LIS) and Edit Distance. The CoT effectively ``unrolls'' the DP table into the context window.
+    \item \textbf{Scratchpads:} \citet{nye2021} introduced the ``scratchpad'' concept, allowing the model to write out intermediate computation steps. This is crucial for SSSP on large graphs, as the path finding requires transitive steps.
+    \item \textbf{Recursion of Thought:} \citet{lee2023} extended this to ``Recursion of Thought,'' using a divide-and-conquer strategy to solve problems too large for a single context.
+    \item \textbf{Transformer Learning $A^*$ Algorithm:} \citet{lehnert2024beyondastar} showed that Transformers can learn the $A^*$ algorithm in grid world pathfinding and Sokoban problems, showing the potential of Transformers to learn complex algorithms.
 \end{itemize}
 
 \subsection{Neural Algorithmic Reasoning (NAR)}
 
 \begin{itemize}
-    \item \textbf{DeepMind's CLRS:} \cite{velickovic2022} established the CLRS-30 benchmark, pushing for models that align with classical algorithms (Bellman-Ford, Prim's, etc.). They emphasize ``Algorithmic Alignment''—the architecture should match the algorithm.
-    \item \textbf{Multiple Solutions:} \cite{georgiev2024} explored NAR for problems with multiple correct solutions (like SSSP on unweighted graphs), arguing that models should learn the distribution of solutions.
-    \item \textbf{Knapsack \& Pseudo-Polynomial:} \cite{pozgaj2025} extended NAR to pseudo-polynomial problems like Knapsack, using DP table supervision.
+    \item \textbf{DeepMind's CLRS:} \citet{velickovic2022} established the CLRS-30 benchmark, pushing for models that align with classical algorithms (Bellman-Ford, Prim's, etc.). They emphasize ``Algorithmic Alignment''—the architecture should match the algorithm.
+    \item \textbf{Multiple Solutions:} \citet{georgiev2024} explored NAR for problems with multiple correct solutions (like SSSP on unweighted graphs), arguing that models should learn the distribution of solutions.
+    \item \textbf{Knapsack \& Pseudo-Polynomial:} \citet{pozgaj2025} extended NAR to pseudo-polynomial problems like Knapsack, using DP table supervision.
 \end{itemize}
 
 \section{Methodology}
@@ -198,20 +198,43 @@ A central finding is the critical role of graph diversity (dataset size): higher
 
 These findings underscore the importance of careful data curation and robust evaluation protocols that explicitly test generalization. While challenges remain, our results suggest Transformers may hold promise as general-purpose executors of dynamic programming algorithms.
 
-\begin{thebibliography}{99} % The number 99 is a placeholder for the widest label
-\bibitem{garg2022} Garg, S.\ et al.\ (2022) Transformers as Algorithms: Generalization and Stability in In-context Learning. arXiv:2301.07067. \url{https://arxiv.org/abs/2301.07067}
-\bibitem{akyurek2022} Akyürek, E.\ et al.\ (2022) The Effects of Pretraining Task Diversity on In-Context Learning of Ridge Regression. OpenReview. \url{https://openreview.net/pdf?id=EshX_qlA3o}
-\bibitem{bhattamishra2023} Bhattamishra, R.\ et al.\ (2023) Understanding In-Context Learning in Transformers and LLMs by Learning to Learn Discrete Functions. arXiv:2310.03016. \url{https://arxiv.org/abs/2310.03016}
-\bibitem{hu2025} Hu, Y.\ et al.\ (2025) In-Context Algorithm Emulation in Fixed-Weight Transformers. arXiv:2508.17550. \url{https://arxiv.org/abs/2508.17550}
-\bibitem{wang2024} Wang, Y.\ et al.\ (2024) Transformers Learn Temporal Difference Methods for In-Context Reinforcement Learning. OpenReview. \url{https://openreview.net/pdf?id=mEqddgqf5w}
-\bibitem{cheng2023} Cheng, Y.\ et al.\ (2023) Towards Revealing the Mystery behind Chain of Thought: A Theoretical Perspective. arXiv:2305.15408. \url{https://arxiv.org/html/2305.15408v5}
-\bibitem{nye2021} Nye, M.\ et al.\ (2021) Show Your Work: Scratchpads for Intermediate Computation with Language Models. OpenReview. \url{https://openreview.net/forum?id=iedYJm92o0a}
-\bibitem{lee2023} Lee, J.\ et al.\ (2023) Recursion of Thought Prompting: Solving Complex Tasks Beyond Context Limits. LearnPrompting.org. \url{https://learnprompting.org/docs/advanced/decomposition/recursion_of_thought}
-% The following citations were not found in the provided reference list:
-% \bibitem{zhou2023} (No direct match found in the provided list)
-% \bibitem{lehnert2024} (No direct match found in the provided list)
-% \bibitem{velickovic2022} (No direct match found in the provided list)
-\bibitem{georgiev2024} Georgiev, N.\ et al.\ (2024) Neural Algorithmic Reasoning with Multiple Correct Solutions. arXiv:2409.06953. \url{https://arxiv.org/html/2409.06953v4}
-\bibitem{pozgaj2025} Pozgaj, D.\ et al.\ (2025) KNARsack: Teaching Neural Algorithmic Reasoners to Solve Pseudo-Polynomial Problems. arXiv:2509.15239. \url{https://arxiv.org/abs/2509.15239}
+\begin{thebibliography}{13}
+
+\bibitem[Garg et~al., 2022]{garg2022}
+Garg, S.\ et al.\ (2022) Transformers as Algorithms: Generalization and Stability in In-context Learning. arXiv:2301.07067. \url{https://arxiv.org/abs/2301.07067}
+
+\bibitem[Akyürek et~al., 2022]{akyurek2022}
+Akyürek, E.\ et al.\ (2022) The Effects of Pretraining Task Diversity on In-Context Learning of Ridge Regression. OpenReview. \url{https://openreview.net/pdf?id=EshX_qlA3o}
+
+\bibitem[Bhattamishra et~al., 2023]{bhattamishra2023}
+Bhattamishra, R.\ et al.\ (2023) Understanding In-Context Learning in Transformers and LLMs by Learning to Learn Discrete Functions. arXiv:2310.03016. \url{https://arxiv.org/abs/2310.03016}
+
+\bibitem[Hu et~al., 2025]{hu2025}
+Hu, Y.\ et al.\ (2025) In-Context Algorithm Emulation in Fixed-Weight Transformers. arXiv:2508.17550. \url{https://arxiv.org/abs/2508.17550}
+
+\bibitem[Wang et~al., 2024]{wang2024}
+Wang, Y.\ et al.\ (2024) Transformers Learn Temporal Difference Methods for In-Context Reinforcement Learning. OpenReview. \url{https://openreview.net/pdf?id=mEqddgqf5w}
+
+\bibitem[Cheng et~al., 2023]{cheng2023}
+Cheng, Y.\ et al.\ (2023) Towards Revealing the Mystery behind Chain of Thought: A Theoretical Perspective. arXiv:2305.15408. \url{https://arxiv.org/html/2305.15408v5}
+
+\bibitem[Nye et~al., 2021]{nye2021}
+Nye, M.\ et al.\ (2021) Show Your Work: Scratchpads for Intermediate Computation with Language Models. OpenReview. \url{https://openreview.net/forum?id=iedYJm92o0a}
+
+\bibitem[Lee et~al., 2023]{lee2023}
+Lee, J.\ et al.\ (2023) Recursion of Thought Prompting: Solving Complex Tasks Beyond Context Limits. LearnPrompting.org. \url{https://learnprompting.org/docs/advanced/decomposition/recursion_of_thought}
+
+\bibitem[Lehnert et~al., 2024]{lehnert2024beyondastar}
+Lehnert, L., Sukhbaatar, S., Su, D., Zheng, Q., Mcvay, P., Rabbat, M., \& Tian, Y.\ (2024) Beyond A*: Better Planning with Transformers via Search Dynamics Bootstrapping. arXiv:2402.14083. \url{https://arxiv.org/abs/2402.14083}
+
+\bibitem[Veličković et~al., 2022]{velickovic2022}
+Veličković, P.\ et al.\ (2022) The CLRS Algorithmic Reasoning Benchmark. arXiv:2205.15659. \url{https://arxiv.org/abs/2205.15659}
+
+\bibitem[Georgiev et~al., 2024]{georgiev2024}
+Georgiev, N.\ et al.\ (2024) Neural Algorithmic Reasoning with Multiple Correct Solutions. arXiv:2409.06953. \url{https://arxiv.org/html/2409.06953v4}
+
+\bibitem[Pozgaj et~al., 2025]{pozgaj2025}
+Pozgaj, D.\ et al.\ (2025) KNARsack: Teaching Neural Algorithmic Reasoners to Solve Pseudo-Polynomial Problems. arXiv:2509.15239. \url{https://arxiv.org/abs/2509.15239}
+
 \end{thebibliography}
 \end{document}

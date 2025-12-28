@@ -172,10 +172,18 @@ desktop.ini
 *.toc
 *.lot
 *.lof
-*.lot
-*.lof
+*.nav
+*.snm
+*.vrb
+
 # Minted generated files
+_minted-*/
 _minted*/
 *.minted
 *.pygstyle
 *.pygtex
+
+# SVG Inkscape intermediate files
+svg-inkscape/
+**/svg-inkscape/*.pdf
+**/svg-inkscape/*.pdf_tex

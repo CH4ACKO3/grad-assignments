@@ -1,0 +1,11 @@
+[project]
+name = "csc6052-natural-language-processing"
+version = "0.1.0"
+description = "CSC6052 - Natural Language Processing assignments"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]

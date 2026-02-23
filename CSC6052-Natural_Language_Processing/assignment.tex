@@ -1,0 +1,134 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 中文支持
+% \usepackage[UTF8]{ctex}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{lipsum} % 随机文本包
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*} % 左边距3cm，右边距3cm
+\setulmarginsandblock{2.5cm}{1.5cm}{*} % 上边距2.5cm，下边距1.5cm
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{\leftmark}{}
+% \makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{} % 移除"Chapter"字样
+\renewcommand{\printchapternum}{} % 不打印章节号
+\renewcommand{\afterchapternum}{} % 移除章节号后的内容
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+\renewcommand{\printchaptertitle}[1]{\chaptitlefont #1}
+
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  \markboth{\MakeUppercase{#1}}{}%
+}
+\renewcommand{\sectionmark}[1]{%
+  \markright{\MakeUppercase{#1}}%
+}
+\makeatother
+
+\title{\huge\textbf{Natural Language Processing - Assignment 1}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+\maketitle
+\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+\begin{KeepFromToc}
+\tableofcontents
+\end{KeepFromToc}
+\end{titlingpage}
+
+% ===== Content =====
+\chapter*{Assignment Submission}
+
+\section*{Note}
+
+All assignment solutions and implementations are completed in the Jupyter Notebook file:
+
+\begin{center}
+\texttt{24Fall\_NLP\_Assignment\_1\_CSC6052\_5051\_4100\_DDA6307\_MDS5110.ipynb}
+\end{center}
+
+The notebook contains:
+\begin{itemize}
+    \item \textbf{Task 1}: Implementation of Continuous Bag of Words (CBoW) Word2Vec model
+    \begin{itemize}
+        \item Batch generator implementation
+        \item CBoW model architecture with forward pass
+        \item Training loop with loss optimization
+    \end{itemize}
+    
+    \item \textbf{Task 2}: Exploration of pre-trained word embeddings
+    \begin{itemize}
+        \item Dimensionality reduction using Truncated SVD
+        \item Analysis of word clusters in 2D space
+        \item Polysemous word investigation
+        \item Synonym and antonym distance analysis
+    \end{itemize}
+    
+    \item \textbf{Task 3}: Utilization of word embeddings
+    \begin{itemize}
+        \item Word analogy examples
+        \item Sentence embedding implementation
+        \item Sentence similarity search
+        \item Bias analysis and mitigation discussion
+    \end{itemize}
+\end{itemize}
+
+\vspace{1cm}
+
+\textbf{Student Information:}
+\begin{itemize}
+    \item Name: Zhenrui Zheng
+    \item Student ID: 225040512
+\end{itemize}
+
+\label{LastPage}
+
+\end{document}

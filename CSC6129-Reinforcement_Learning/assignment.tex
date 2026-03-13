@@ -1,0 +1,595 @@
+\documentclass[11pt, a4paper, oneside]{memoir}
+
+% 数学公式包
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% 算法包
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor}
+
+% 图表包
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% 表格包
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% 其他实用包
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+\usepackage{ifthen}
+
+% ===== 图形路径 =====
+\graphicspath{{../code/result/}}
+\newcommand{\includeresult}[1]{%
+  \IfFileExists{../code/result/#1.png}{%
+    \includegraphics[width=0.85\textwidth]{#1.png}%
+  }{\IfFileExists{../code/result/#1.pdf}{%
+    \includegraphics[width=0.85\textwidth]{#1.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{\centering\small [PLACEHOLDER: \detokenize{#1}]}}}}%
+}
+
+% ===== 页面布局 =====
+\setlrmarginsandblock{3cm}{3cm}{*}
+\setulmarginsandblock{2.5cm}{1.5cm}{*}
+\setlength{\beforechapskip}{0.5cm}
+\checkandfixthelayout
+
+% ===== 页面风格 =====
+\makeevenfoot{headings}{}{\thepage}{}
+\makeoddfoot{headings}{}{\thepage}{}
+\makeevenhead{headings}{}{\leftmark}{}
+\makeoddhead{headings}{}{\leftmark}{}
+\makeheadrule{headings}{\textwidth}{0.4pt}
+
+% ===== 章节格式 =====
+\makeatletter
+\renewcommand{\chaptername}{}
+\renewcommand{\printchapternum}{}
+\renewcommand{\afterchapternum}{}
+\renewcommand{\chapternumberline}[1]{}
+\renewcommand{\chaptitlefont}{\normalfont\huge\bfseries}
+\renewcommand{\printchaptertitle}[1]{%
+  \chaptitlefont #1%
+  \markboth{\MakeUppercase{#1}}{}%
+}
+\renewcommand{\sectionmark}[1]{%
+  \markright{\MakeUppercase{#1}}%
+}
+\makeatother
+
+\title{\huge\textbf{CSC6129 Reinforcement Learning\\Policy Gradients and Deep Q-Learning}\vspace{-0.5cm}}
+\author{\textbf{Zhenrui Zheng} \vspace{0.5cm} \\ \small Chinese University of Hong Kong, Shenzhen \\ \small\texttt{225040512@link.cuhk.edu.cn}}
+\date{}
+\setlength{\droptitle}{-1cm}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+\begin{document}
+
+% ===== 标题页 & 目录 =====
+\begin{titlingpage}
+\maketitle
+\renewcommand{\contentsname}{\huge Contents \vspace{-1cm}}
+\begin{KeepFromToc}
+\tableofcontents
+\end{KeepFromToc}
+\end{titlingpage}
+
+% ===== 0. Setup =====
+\chapter{Setup}
+\label{ch:setup}
+
+\section{Environment and Task}
+
+We use \texttt{LunarLander-v2} from the Gymnasium library for all experiments in this assignment. LunarLander is a classic reinforcement learning benchmark where the agent must learn to land a spacecraft safely on a landing pad. The environment provides an 8-dimensional continuous state space (position, velocity, angle, angular velocity, and leg contact information) and a 4-dimensional discrete action space (do nothing, fire left engine, fire main engine, fire right engine).
+
+The reward structure encourages safe landing: the agent receives positive rewards for moving toward the landing pad and negative rewards for crashing or using fuel. An episode terminates when the lander crashes, lands successfully, or exceeds the maximum episode length.
+
+\section{Data Collection Strategy}
+
+Experience is collected online by rolling out the current policy in the environment. For policy gradient methods (Part I), we collect complete trajectories and use them to estimate gradient updates. For DQN-style methods (Part II), transitions $(s_t, a_t, r_t, s_{t+1}, \text{done}_t)$ are stored in a replay buffer with capacity to hold thousands of transitions. For multi-step targets, we sample contiguous sequences from the buffer to compute $N$-step returns.
+
+\section{Implementation Framework}
+
+We use PyTorch as our deep learning framework and Gymnasium for environment interactions. All core RL algorithms are implemented from scratch without importing complete RL implementations. This includes:
+\begin{itemize}
+\item Policy networks (categorical and Gaussian)
+\item Value function networks
+\item Policy gradient estimators
+\item Q-networks and target networks
+\item Replay buffers
+\item Training loops and logging utilities
+\end{itemize}
+
+The implementation follows standard practices for reproducibility: we set random seeds, log hyperparameters, and save training curves for analysis.
+
+% ===== Part I: Policy Gradients =====
+\chapter{Part I: Policy Gradients}
+\label{ch:part1}
+
+\section{REINFORCE}
+\label{sec:reinforce}
+
+\subsection{Implementation}
+
+REINFORCE is a Monte Carlo policy gradient algorithm that learns directly from complete episode trajectories. We implement a stochastic policy $\pi_\theta(a \mid s)$ using a neural network. Since LunarLander-v2 has a discrete action space with 4 actions, we use a categorical (softmax) policy where the network outputs logits for each action, and actions are sampled from the resulting categorical distribution.
+
+The policy network architecture consists of:
+\begin{itemize}
+\item Input layer: 8 dimensions (state space)
+\item Hidden layers: [architecture details to be specified]
+\item Output layer: 4 dimensions (one logit per action)
+\item Activation: ReLU for hidden layers, softmax for output
+\end{itemize}
+
+The Monte Carlo policy gradient estimator is:
+\begin{equation}
+\widehat{\nabla_\theta J} = \frac{1}{N} \sum_{i=1}^{N} \sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t^i \mid s_t^i) \, \widehat{G}_t^i.
+\end{equation}
+
+The implementation supports two different return estimators:
+\begin{enumerate}
+\item \textbf{Trajectory return}: $\widehat{G}_t = \sum_{t'=0}^{T-1} \gamma^{t'} r_{t'}$ (same for all $t$ in a trajectory). This uses the full trajectory return as the estimate for all time steps, which has high variance but is unbiased.
+\item \textbf{Reward-to-go}: $\widehat{G}_t = \sum_{t'=t}^{T-1} \gamma^{t'-t} r_{t'}$. This only considers rewards from time $t$ onward, which typically reduces variance by excluding past rewards that the current action cannot influence.
+\end{enumerate}
+
+The training procedure collects batches of trajectories, computes returns, calculates policy gradients, and updates the policy network using the Adam optimizer.
+
+\subsection{Experiments}
+
+We compare learning curves for trajectory return vs.\ reward-to-go under the same training budget. Both methods are trained for the same number of environment steps, using identical network architectures and hyperparameters. The only difference is how returns are computed: trajectory return uses the same total return for all time steps in an episode, while reward-to-go uses only future rewards from each time step.
+
+We expect reward-to-go to show better sample efficiency and more stable learning because it has lower variance in the gradient estimates. The experiment uses multiple random seeds to account for the stochasticity in the learning process.
+
+% PLACEHOLDER: fig_reinforce_return_vs_rtg
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figure - fig_reinforce_return_vs_rtg.png
+\includeresult{fig_reinforce_return_vs_rtg}
+\caption{Learning curves comparing trajectory return vs.\ reward-to-go on LunarLander-v2.}
+\label{fig:reinforce_return_vs_rtg}
+\end{figure}
+
+% ---
+\section{Baselines and Advantage Estimation}
+\label{sec:baselines}
+
+\subsection{Implementation}
+
+Policy gradient methods can suffer from high variance in gradient estimates, which slows learning. A baseline function can reduce this variance without introducing bias. We implement three key components:
+
+\begin{enumerate}
+\item \textbf{Learned state-value baseline} $V_\phi(s)$: We train a separate value network that estimates the expected return from each state. The value network is trained by minimizing the mean squared error between predictions and empirical returns: $\mathcal{L}_{\text{value}} = \sum_t \|V_\phi(s_t) - \widehat{G}_t\|^2$ on each iteration. The network shares a similar architecture with the policy network but outputs a single scalar value.
+
+\item \textbf{Advantage estimation}: Instead of using returns $\widehat{G}_t$ directly, we compute advantages $\widehat{A}_t = \widehat{G}_t - V_\phi(s_t)$. The advantage measures how much better an action was compared to the average value of being in that state. Using advantages reduces variance because it subtracts the state-dependent baseline, leaving only the action-specific contribution.
+
+\item \textbf{Advantage normalization}: Within each batch, we standardize advantages to have zero mean and unit variance: $\widehat{A} \leftarrow (\widehat{A} - \mu) / (\sigma + \epsilon)$, where $\mu$ and $\sigma$ are the mean and standard deviation of advantages in the batch, and $\epsilon$ is a small constant for numerical stability. This normalization helps with training stability, especially when advantages have vastly different scales across episodes.
+\end{enumerate}
+
+The complete algorithm trains both the policy network and the value network jointly. After collecting a batch of trajectories, we first update the value network to fit the returns, then compute advantages and update the policy network.
+
+\subsection{Experiments}
+
+We conduct an ablation study comparing three configurations:
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{No baseline}: Pure REINFORCE with reward-to-go, no value function.
+\item \textbf{Learned baseline without normalization}: A value network is trained to predict returns, and advantages are computed but not normalized.
+\item \textbf{Learned baseline with normalization}: Both value network and advantage normalization are used.
+\end{enumerate}
+
+All three methods use the same policy network architecture, learning rate, and training budget. We expect that adding a baseline will significantly improve sample efficiency by reducing gradient variance. Further, we expect that advantage normalization will improve stability and may accelerate learning, particularly in environments where reward scales vary significantly across episodes.
+
+% PLACEHOLDER: fig_baselines
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figure - fig_baselines.png
+\includeresult{fig_baselines}
+\caption{Effect of baseline and advantage normalization on policy gradient learning.}
+\label{fig:baselines}
+\end{figure}
+
+% ---
+\section{Generalized Advantage Estimation (GAE)}
+\label{sec:gae}
+
+\subsection{Implementation}
+
+Generalized Advantage Estimation (GAE) is a method that interpolates between Monte Carlo returns (high variance, low bias) and temporal difference estimates (low variance, high bias) using an exponentially-weighted average. The hyperparameter $\lambda \in [0, 1]$ controls this trade-off.
+
+We implement GAE($\lambda$) as follows:
+\begin{align}
+\delta_t &= r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t), \\
+\widehat{A}^{\mathrm{GAE}}_t &= \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}.
+\end{align}
+
+Here, $\delta_t$ is the temporal difference (TD) error at time $t$, and the advantage is computed as an exponentially-weighted sum of TD errors. Special cases include:
+\begin{itemize}
+\item $\lambda = 0$: Pure TD advantage $\widehat{A}_t = \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)$ (lowest variance, highest bias).
+\item $\lambda = 1$: Equivalent to Monte Carlo advantage $\widehat{A}_t = \widehat{G}_t - V_\phi(s_t)$ (highest variance, lowest bias).
+\item $\lambda \in (0, 1)$: Trades off between bias and variance.
+\end{itemize}
+
+In practice, we implement GAE using a backward pass through the trajectory, computing advantages recursively:
+\begin{equation}
+\widehat{A}^{\mathrm{GAE}}_t = \delta_t + (\gamma\lambda) \widehat{A}^{\mathrm{GAE}}_{t+1}.
+\end{equation}
+This recursive formulation is computationally efficient and numerically stable.
+
+\subsection{Experiments}
+
+We run an ablation study over $\lambda \in \{0, 0.95, 1\}$ to understand how the bias-variance trade-off affects learning:
+\begin{itemize}
+\item $\lambda = 0$: Uses only one-step TD errors, giving low variance but potentially high bias if the value function is inaccurate.
+\item $\lambda = 0.95$: The standard choice in many RL implementations, balancing bias and variance.
+\item $\lambda = 1$: Equivalent to using full Monte Carlo returns minus the baseline, which is unbiased but has high variance.
+\end{itemize}
+
+We measure both sample efficiency (how quickly performance improves) and stability (variance in performance across training). We expect that $\lambda = 0.95$ will perform best overall, providing a good balance between the extremes. The experiments use the same network architectures, learning rates, and training budgets across all $\lambda$ values.
+
+% PLACEHOLDER: fig_gae_ablation
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figure - fig_gae_ablation.png
+\includeresult{fig_gae_ablation}
+\caption{GAE ablation: learning curves for $\lambda \in \{0, 0.95, 1\}$.}
+\label{fig:gae_ablation}
+\end{figure}
+
+\subsection{Report Questions}
+
+\begin{enumerate}
+\item \textbf{Why does reward-to-go typically reduce variance compared to trajectory return?} \\
+% TODO: Fill after experiments - discuss that reward-to-go conditions on future rewards already observed, so the sum has fewer terms and lower variance.
+\emph{[Placeholder: Answer after running experiments.]}
+
+\item \textbf{What failure mode do you observe when $\lambda = 1$ (if any)?} \\
+\emph{[Placeholder: Answer after running experiments. Common issue: high variance or instability when $\lambda=1$.]}
+\end{enumerate}
+
+% ===== Part II: Deep Q-Learning =====
+\chapter{Part II: Deep Q-Learning}
+\label{ch:part2}
+
+\section{DQN}
+\label{sec:dqn}
+
+\subsection{Implementation}
+
+Deep Q-Network (DQN) is a value-based RL algorithm that learns an action-value function $Q(s, a)$ using a neural network. We implement DQN with the following key components:
+
+\begin{enumerate}
+\item \textbf{Experience replay}: Transitions $(s_t, a_t, r_t, s_{t+1}, \text{done}_t)$ are stored in a replay buffer with a fixed capacity (typically 10,000-100,000 transitions). During training, we uniformly sample random minibatches from the buffer. This breaks temporal correlations in the data and improves sample efficiency by reusing past experiences.
+
+\item \textbf{Target network}: We maintain two Q-networks: the online network $Q_\phi(s, a)$ used for action selection and gradient updates, and the target network $\bar{Q}_{\bar{\phi}}(s, a)$ used for computing TD targets. The target network parameters $\bar{\phi}$ are periodically copied from the online network every $K$ environment steps (e.g., $K = 1000$). This stabilizes training by providing consistent targets during multiple gradient updates.
+
+\item \textbf{$\epsilon$-greedy exploration}: During training, actions are selected using an $\epsilon$-greedy policy: with probability $\epsilon$, a random action is taken; otherwise, the greedy action $\arg\max_a Q_\phi(s, a)$ is taken. We use a linear decay schedule for $\epsilon$, starting from $\epsilon_{\text{start}} = 1.0$ and decaying to $\epsilon_{\text{end}} = 0.01$ over a specified number of steps.
+
+\item \textbf{Huber loss}: Instead of mean squared error, we use Huber loss for the TD error, which is less sensitive to outliers:
+\begin{equation}
+\mathcal{L}_{\text{Huber}}(\delta) = \begin{cases}
+\frac{1}{2}\delta^2 & \text{if } |\delta| \leq 1, \\
+|\delta| - \frac{1}{2} & \text{otherwise}.
+\end{cases}
+\end{equation}
+where $\delta = Q_\phi(s_t, a_t) - (r_t + \gamma \max_{a'} \bar{Q}_{\bar{\phi}}(s_{t+1}, a'))$.
+
+\item \textbf{Gradient clipping}: To prevent exploding gradients, we clip gradients by norm using a threshold (e.g., 10.0) before each optimizer step.
+\end{enumerate}
+
+The complete DQN algorithm alternates between collecting experience using the current policy, sampling minibatches from the replay buffer, computing TD targets using the target network, and updating the online network using gradient descent.
+
+\subsection{Sanity Checks}
+
+To verify that our DQN implementation is working correctly, we perform several sanity checks:
+
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{TD loss decreases early in training}: We plot the TD loss (Huber loss) over training steps. If the implementation is correct, we should see the loss decrease in the early stages as the Q-network begins to learn meaningful value estimates.
+
+\item \textbf{$\epsilon$ schedule over time}: We verify that the exploration rate $\epsilon$ follows the intended linear decay schedule, starting from 1.0 and decaying to the minimum value over the specified number of steps.
+
+\item \textbf{Average episode length and reward}: We track the mean episode return and episode length over time. As learning progresses, we expect episode returns to increase and, potentially, episode lengths to change as the agent learns more efficient behaviors.
+\end{enumerate}
+
+These checks help ensure that the implementation is correct before running more extensive experiments.
+
+% PLACEHOLDER: fig_dqn_sanity
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figures - fig_dqn_td_loss.png, fig_dqn_epsilon.png, or combined
+\includeresult{fig_dqn_sanity}
+\caption{DQN sanity checks: TD loss, $\epsilon$ schedule, and episode reward/length.}
+\label{fig:dqn_sanity}
+\end{figure}
+
+\subsection{Experimental Details}
+
+Our DQN implementation uses the following configuration:
+\begin{itemize}
+\item \textbf{Environment}: LunarLander-v2 (discrete action space with 4 actions)
+\item \textbf{Network architecture}: [To be filled - e.g., 3-layer MLP with hidden dimensions]
+\item \textbf{Replay buffer capacity}: [To be filled - e.g., 50,000]
+\item \textbf{Batch size}: [To be filled - e.g., 64]
+\item \textbf{Learning rate}: [To be filled - e.g., 0.001]
+\item \textbf{Discount factor} $\gamma$: [To be filled - e.g., 0.99]
+\item \textbf{Target network update frequency} $K$: [To be filled - e.g., 1000 steps]
+\item \textbf{Exploration schedule}: $\epsilon$ decays linearly from [To be filled - e.g., 1.0 to 0.01 over 10,000 steps]
+\item \textbf{Gradient clipping threshold}: [To be filled - e.g., 10.0]
+\item \textbf{Training steps}: [To be filled - e.g., 100,000 environment steps]
+\item \textbf{Random seeds}: [To be filled - e.g., 0, 1, 2]
+\end{itemize}
+
+These hyperparameters are chosen based on standard practices in DQN implementations and tuned for the LunarLander environment.
+
+% ---
+\section{Multi-step Targets}
+\label{sec:multistep}
+
+\subsection{Implementation}
+
+Multi-step targets extend the standard one-step TD target by bootstrapping from a state $N$ steps into the future. This can reduce bias (by incorporating more actual rewards before bootstrapping) while maintaining some of the benefits of bootstrapping.
+
+We implement the $N$-step target:
+\begin{equation}
+y^{(N)}_t = \sum_{t'=t}^{t+N-1} \gamma^{t'-t} r_{t'} + \gamma^N \max_{a'} \bar{Q}_{\bar{\phi}}(s_{t+N}, a').
+\end{equation}
+
+The $N$-step target consists of two parts:
+\begin{itemize}
+\item The discounted sum of $N$ actual rewards: $\sum_{t'=t}^{t+N-1} \gamma^{t'-t} r_{t'}$
+\item The bootstrapped value of the state reached after $N$ steps: $\gamma^N \max_{a'} \bar{Q}_{\bar{\phi}}(s_{t+N}, a')$
+\end{itemize}
+
+Implementation details:
+\begin{itemize}
+\item When sampling from the replay buffer, we ensure that we sample contiguous sequences of at least $N$ transitions to compute the $N$-step return.
+\item For trajectories that terminate before $N$ steps, we use a shorter return without bootstrapping from the terminal state.
+\item Special cases: $N=1$ recovers standard DQN, while larger $N$ incorporates more actual reward signal before bootstrapping.
+\end{itemize}
+
+The choice of $N$ represents a bias-variance trade-off: larger $N$ reduces bias (by relying more on actual rewards) but increases variance (by incorporating more stochastic rewards). It also affects credit assignment: larger $N$ propagates reward information faster through the state space.
+
+\subsection{Experiments}
+
+We compare $N$-step targets with $N \in \{1, 3, 5\}$ under the same total number of environment steps. All methods use the same network architecture, replay buffer size, learning rate, and other hyperparameters. The only difference is the number of steps used to compute the TD target.
+
+We evaluate both:
+\begin{itemize}
+\item \textbf{Final performance}: The average episode return achieved at the end of training, measured over the last few thousand steps or using a separate evaluation with the greedy policy.
+\item \textbf{Learning speed}: How quickly the agent reaches a threshold performance level, measured by the number of environment steps required to achieve certain average returns.
+\end{itemize}
+
+We expect that intermediate values of $N$ (e.g., $N=3$) may perform best, as they balance the benefits of reduced bias (compared to $N=1$) with controlled variance (compared to larger $N$). However, the optimal $N$ may depend on the specific characteristics of the LunarLander environment, such as episode length and reward sparsity.
+
+% PLACEHOLDER: fig_multistep
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figure - fig_multistep.png
+\includeresult{fig_multistep}
+\caption{Multi-step targets: learning curves for $N \in \{1, 3, 5\}$.}
+\label{fig:multistep}
+\end{figure}
+
+% PLACEHOLDER: tab_multistep (optional)
+% \input{tab_multistep} or inline table
+
+% ---
+\section{Double DQN}
+\label{sec:ddqn}
+
+\subsection{Implementation}
+
+Standard Q-learning suffers from overestimation bias due to the use of the max operator in the TD target. When approximation errors are present (as they always are with function approximation), the $\max$ operator tends to select overestimated values, leading to a positive bias that propagates through the value estimates.
+
+Double DQN addresses this by decoupling action selection from action evaluation. Instead of using the same network to both select and evaluate actions, we:
+\begin{enumerate}
+\item Use the \textbf{online network} $Q_\phi(s_{t+1}, \cdot)$ to select the best action: $a^* = \arg\max_{a'} Q_\phi(s_{t+1}, a')$
+\item Use the \textbf{target network} $\bar{Q}_{\bar{\phi}}(s_{t+1}, \cdot)$ to evaluate that action: $\bar{Q}_{\bar{\phi}}(s_{t+1}, a^*)$
+\end{enumerate}
+
+The Double DQN target is:
+\begin{equation}
+y^{\mathrm{DDQN}}_t = r_t + \gamma \bar{Q}_{\bar{\phi}}\bigl(s_{t+1}, \arg\max_{a'} Q_\phi(s_{t+1}, a')\bigr).
+\end{equation}
+
+This decoupling reduces overestimation because even if the online network incorrectly identifies an action as optimal due to noise, the target network (which has different approximation errors) is unlikely to overestimate that same action. The two networks make independent errors, which helps cancel out systematic overestimation.
+
+Implementation-wise, Double DQN requires only a minor modification to standard DQN: when computing TD targets, we first perform a forward pass with the online network to select actions, then use those actions to index the Q-values from the target network. This adds negligible computational cost compared to standard DQN.
+
+\subsection{Experiments}
+
+We conduct a direct comparison between DQN and Double DQN using identical hyperparameters, network architectures, and training procedures. The only difference is the computation of the TD target: DQN uses the max operator with the target network only, while Double DQN uses the online network for action selection and the target network for evaluation.
+
+We measure:
+\begin{itemize}
+\item \textbf{Learning curves}: Episode returns over training to see if Double DQN converges faster or to a better policy.
+\item \textbf{Q-value magnitudes}: We track the average Q-values predicted by both methods to diagnose overestimation. If DQN exhibits overestimation bias, its Q-values should be systematically higher than those of Double DQN.
+\item \textbf{Final performance}: The average return achieved by both methods at the end of training.
+\end{itemize}
+
+Based on the Double DQN paper (van Hasselt et al., 2016), we expect Double DQN to show:
+\begin{itemize}
+\item Lower Q-value estimates (less overestimation)
+\item More stable learning curves
+\item Potentially better final performance, especially if overestimation bias is a significant problem in the LunarLander environment
+\end{itemize}
+
+% PLACEHOLDER: fig_dqn_vs_ddqn
+\begin{figure}[H]
+\centering
+% TODO: Replace with actual figure - fig_dqn_vs_ddqn.png
+\includeresult{fig_dqn_vs_ddqn}
+\caption{Comparison of DQN vs.\ Double DQN.}
+\label{fig:dqn_vs_ddqn}
+\end{figure}
+
+\subsection{Overestimation Bias Discussion}
+
+Overestimation bias in Q-learning arises from the combination of function approximation errors and the max operator in the Bellman update. Even if approximation errors are zero-mean, the max operator selects the action with the highest estimated value, which tends to be an overestimate when errors are present. This bias compounds over iterations as overestimated values propagate backward through the Bellman updates.
+
+Mathematically, standard Q-learning computes:
+\begin{equation}
+\max_{a'} Q(s', a') \approx Q(s', a^*) + \epsilon_{a^*}
+\end{equation}
+where $a^* = \arg\max_{a'} [Q_{\text{true}}(s', a') + \epsilon_{a'}]$ and $\epsilon_{a'}$ represents approximation errors. Since we select $a^*$ based on the maximum of $Q_{\text{true}} + \epsilon$, we tend to select actions where $\epsilon$ is large and positive, leading to overestimation.
+
+Double Q-learning mitigates this by using one network to select actions and another to evaluate them. The key insight is that the two networks have independent errors, so even if network 1 selects an action due to a positive error, network 2's estimate of that action is unlikely to have a correlated positive error.
+
+\textbf{Empirical findings:} [To be filled after experiments]
+\begin{itemize}
+\item Whether Double DQN shows lower Q-value estimates compared to DQN
+\item Whether this translates to more stable learning or better final performance
+\item Any observable differences in learning curves or convergence behavior
+\item Whether LunarLander exhibits significant overestimation bias
+\end{itemize}
+
+% ===== Analysis Summary =====
+\chapter{Analysis and Discussion}
+\label{ch:analysis}
+
+This chapter synthesizes the experimental findings from both policy gradient methods (Part I) and deep Q-learning methods (Part II), providing a comprehensive view of the algorithms' behaviors on the LunarLander-v2 environment.
+
+\section{Policy Gradients: Key Findings}
+
+\subsection{Trajectory Return vs. Reward-to-Go}
+
+The comparison between trajectory return and reward-to-go (Section~\ref{sec:reinforce}) reveals fundamental insights about variance reduction in policy gradient methods.
+
+\textbf{Expected findings:}
+\begin{itemize}
+\item Reward-to-go should demonstrate faster learning and lower variance in gradient estimates
+\item Trajectory return may show more noisy learning curves but is equally unbiased
+\item The performance gap may be more pronounced early in training when policies are far from optimal
+\end{itemize}
+
+\textbf{Theoretical explanation:} Reward-to-go reduces variance because actions at time $t$ cannot influence rewards before time $t$. By excluding $\sum_{t'=0}^{t-1} \gamma^{t'} r_{t'}$ from the return used in the gradient estimator, we remove a source of variance without introducing bias (since the expectation of past rewards is independent of the current action).
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:reinforce_return_vs_rtg}]
+
+\subsection{Impact of Baselines and Normalization}
+
+The ablation study in Section~\ref{sec:baselines} examines how variance reduction techniques affect learning:
+
+\begin{itemize}
+\item \textbf{No baseline}: Highest variance, slowest learning
+\item \textbf{Baseline without normalization}: Reduced variance through state-dependent baseline subtraction
+\item \textbf{Baseline with normalization}: Further improvements through standardization of advantage scales
+\end{itemize}
+
+Advantage normalization can be particularly helpful when different episodes have vastly different return scales, which can occur in LunarLander when some episodes result in crashes (large negative returns) while others result in successful landings (positive returns).
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:baselines}]
+
+\subsection{GAE and the Bias-Variance Trade-off}
+
+The GAE experiments (Section~\ref{sec:gae}) explore how the $\lambda$ parameter affects learning:
+
+\begin{itemize}
+\item $\lambda = 0$: Relies entirely on the value function for bootstrapping. Low variance but high bias if $V_\phi$ is inaccurate early in training.
+\item $\lambda = 0.95$: Standard choice that balances bias and variance. Should perform well in most settings.
+\item $\lambda = 1$: Equivalent to Monte Carlo returns with baseline. Unbiased but high variance, potentially leading to unstable learning.
+\end{itemize}
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:gae_ablation}]
+
+\textbf{Answer to Question 1:} Why does reward-to-go typically reduce variance compared to trajectory return?
+
+[To be filled: Explain that past rewards are not affected by current actions, so including them only adds noise to the gradient estimate. Reward-to-go removes this noise without introducing bias.]
+
+\textbf{Answer to Question 2:} What failure mode do you observe when $\lambda = 1$ (if any)?
+
+[To be filled: Discuss whether high variance leads to unstable learning, slow convergence, or policy degradation. Compare with the stability observed at lower $\lambda$ values.]
+
+\section{Deep Q-Learning: Key Findings}
+
+\subsection{DQN Sanity Checks}
+
+The sanity checks (Section~\ref{sec:dqn}) verify that our implementation is working correctly:
+\begin{itemize}
+\item TD loss should decrease rapidly in early training as the network learns basic value estimates
+\item Epsilon decay should follow the specified linear schedule, ensuring a smooth transition from exploration to exploitation
+\item Episode returns should generally increase over time, though with significant variance due to exploration and stochastic environment dynamics
+\end{itemize}
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:dqn_sanity}]
+
+\subsection{Multi-step Targets}
+
+The multi-step target experiments (Section~\ref{sec:multistep}) examine how the number of bootstrapping steps affects learning:
+
+\begin{itemize}
+\item $N=1$: Standard DQN. High bias (value function may be inaccurate), low variance (single-step return).
+\item $N=3$: Intermediate choice. Reduces bias by incorporating more actual rewards while controlling variance.
+\item $N=5$: Further bias reduction but higher variance due to longer rollouts.
+\end{itemize}
+
+We expect multi-step targets to improve sample efficiency by propagating reward information faster through the state space. In sparse-reward environments, larger $N$ can significantly accelerate learning by bridging the gap between states and rewards that are many steps apart.
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:multistep} - compare learning speed and final performance across different $N$ values]
+
+\subsection{DQN vs. Double DQN}
+
+The comparison between DQN and Double DQN (Section~\ref{sec:ddqn}) investigates overestimation bias:
+
+\textbf{Expected findings:}
+\begin{itemize}
+\item Double DQN should show lower average Q-values if overestimation is present in standard DQN
+\item Learning curves may be more stable with Double DQN
+\item Final performance could be better with Double DQN if overestimation significantly hurts the learned policy
+\end{itemize}
+
+The magnitude of improvement depends on how severe overestimation bias is in the LunarLander environment. Some environments exhibit more severe overestimation than others, depending on factors like the value function's approximation capacity and the stochasticity of state transitions.
+
+\textbf{Empirical results:} [To be filled based on experimental data from Figure~\ref{fig:dqn_vs_ddqn}]
+
+\section{Comparative Analysis: Policy Gradients vs. Q-Learning}
+
+\subsection{Sample Efficiency}
+
+[To be filled: Compare which family of methods (policy gradients or Q-learning) achieved better performance with fewer environment interactions on LunarLander]
+
+\subsection{Stability and Variance}
+
+[To be filled: Discuss which methods showed more stable learning curves and why. Policy gradients typically have higher variance but can learn stochastic policies. Q-learning is more sample-efficient but requires discrete actions or modifications for continuous control.]
+
+\subsection{Hyperparameter Sensitivity}
+
+[To be filled: Comment on which methods were more sensitive to hyperparameter choices based on the ablation studies]
+
+\section{Conclusions}
+
+This assignment has provided hands-on experience with core reinforcement learning algorithms:
+\begin{itemize}
+\item \textbf{Policy Gradients (REINFORCE)}: Direct policy optimization using gradient ascent. Variance reduction through reward-to-go, baselines, and GAE is crucial for practical performance.
+\item \textbf{Deep Q-Learning (DQN)}: Value-based learning with experience replay and target networks. Extensions like multi-step targets and Double DQN address bias-variance trade-offs and overestimation.
+\end{itemize}
+
+Both families of algorithms successfully solve the LunarLander task, but they differ in their sample efficiency, stability, and ease of implementation. Understanding these trade-offs is essential for selecting appropriate RL methods for different applications.
+
+\textbf{Key takeaways:}
+\begin{enumerate}
+\item Variance reduction is critical for policy gradient methods. Simple techniques like reward-to-go and baselines dramatically improve learning speed.
+\item The bias-variance trade-off appears in both policy gradients (through GAE's $\lambda$ parameter) and Q-learning (through multi-step targets).
+\item Experience replay and target networks are essential for stable deep Q-learning.
+\item Double Q-learning provides a simple yet effective fix for overestimation bias.
+\end{enumerate}
+
+[To be filled: Add any additional insights from the experimental results]
+
+% 标记最后一页用于总页数计算
+\label{LastPage}
+
+\end{document}

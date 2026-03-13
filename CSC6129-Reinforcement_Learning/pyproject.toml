@@ -1,0 +1,19 @@
+[project]
+name = "csc6129-reinforcement-learning"
+version = "0.1.0"
+description = "CSC6129 - Reinforcement Learning assignments"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+    "pypdf",
+]
+
+[project.optional-dependencies]
+# Uncomment as needed:
+# pytorch = ["torch", "torchvision", "torchaudio"]
+# tensorflow = ["tensorflow"]
+# gym = ["gymnasium", "gymnasium-classic-control"]
+# jupyter = ["jupyter", "ipython"]

@@ -1,4 +1,4 @@
-﻿# Graduate Assignments
+# Graduate Assignments
 
 This repository contains my personal course assignments' solutions and source code. 
 
@@ -6,9 +6,18 @@ This repository contains my personal course assignments' solutions and source co
 
 | Course | PDFs | Code | LaTeX Source |
 |--------|------|------|-------|
-| **CSC6001** - Analysis of Algorithms | [A1](CSC6001-Analysis_of_Algorithms/tex/assignment_1.pdf) <br> [A2](CSC6001-Analysis_of_Algorithms/tex/assignment_2.pdf) <br> [A3](CSC6001-Analysis_of_Algorithms/tex/assignment_3.pdf) <br> [A4](CSC6001-Analysis_of_Algorithms/tex/assignment_4.pdf) | [Code](CSC6001-Analysis_of_Algorithms/code/) | [A1](CSC6001-Analysis_of_Algorithms/assignment_1.tex) <br> [A2](CSC6001-Analysis_of_Algorithms\assignment_2.tex) <br> [A3](CSC6001-Analysis_of_Algorithms\assignment_3.tex) <br> [A4](CSC6001-Analysis_of_Algorithms\assignment_4.tex) |
-| **CSC6022** - Machine Learning | [A1](CSC6022-Machine_Learning/prompt/Assignment1_new.pdf) <br> [A2](CSC6022-Machine_Learning/prompt/Assignment2.pdf) <br> [A3](CSC6022-Machine_Learning/prompt/Assignment3.pdf) | [Code](CSC6022-Machine_Learning/code/) | [A1](CSC6022-Machine_Learning/tex/assignment_1.pdf) <br> [A2](CSC6022-Machine_Learning/tex/assignment_2.pdf) <br> [A3](CSC6022-Machine_Learning/tex/assignment_3.pdf) |
-| **DDA6040** - Dynamic Programming and Stochastic Control | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment1.pdf) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment2.pdf) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment_3.pdf) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/final_project.pdf) | [Code](DDA6040-Dynamic_Programming_and_Stochastic_Control/code/) | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_1.pdf) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_2.pdf) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_3.pdf) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/final_project.pdf) |
+| **CSC6001** - Analysis of Algorithms | [A1](CSC6001-Analysis_of_Algorithms/tex/assignment_1.pdf) <br> [A2](CSC6001-Analysis_of_Algorithms/tex/assignment_2.pdf) <br> [A3](CSC6001-Analysis_of_Algorithms/tex/assignment_3.pdf) <br> [A4](CSC6001-Analysis_of_Algorithms/tex/assignment_4.pdf) | [Code](CSC6001-Analysis_of_Algorithms/code/) | [A1](CSC6001-Analysis_of_Algorithms/assignment_1.tex) <br> [A2](CSC6001-Analysis_of_Algorithms/assignment_2.tex) <br> [A3](CSC6001-Analysis_of_Algorithms/assignment_3.tex) <br> [A4](CSC6001-Analysis_of_Algorithms/assignment_4.tex) |
+| **CSC6022** - Machine Learning | [A1](CSC6022-Machine_Learning/tex/assignment_1.pdf) <br> [A2](CSC6022-Machine_Learning/tex/assignment_2.pdf) <br> [A3](CSC6022-Machine_Learning/tex/assignment_3.pdf) | [Code](CSC6022-Machine_Learning/code/) | [A1](CSC6022-Machine_Learning/assignment_1.tex) <br> [A2](CSC6022-Machine_Learning/assignment_2.tex) <br> [A3](CSC6022-Machine_Learning/assignment_3.tex) |
+| **CSC6052** - Natural Language Processing | [A1](CSC6052-Natural_Language_Processing/tex/assignment.pdf) | [Code](CSC6052-Natural_Language_Processing/code/) | [A1](CSC6052-Natural_Language_Processing/assignment.tex) |
+| **CSC6124** - Graph Computing | [Page 32 blank template](CSC6124-Graph_Computing/tex/quick_exercise_32.pdf) | Not required for this exercise | [Page 32 template](CSC6124-Graph_Computing/quick_exercise_32.tex) |
+| **CSC6300** - Thesis Research (I) | [Report](CSC6300-Thesis_Research_%28I%29/tex/assignment.pdf) | — | [Report](CSC6300-Thesis_Research_%28I%29/assignment.tex) |
+| **DDA6040** - Dynamic Programming and Stochastic Control | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_1.pdf) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_2.pdf) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_3.pdf) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/final_project.pdf) | [Code](DDA6040-Dynamic_Programming_and_Stochastic_Control/code/) | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/assignment_1.tex) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/assignment_2.tex) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/assignment_3.tex) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/final_project.tex) |
+
+CSC6124 currently contains a blank submission template, not a completed solution.
+See its [editing checklist](CSC6124-Graph_Computing/README.md).
+CSC6129 - Reinforcement Learning is available on the
+[`csc6129` branch](https://github.com/CH4ACKO3/grad-assignments/tree/csc6129/CSC6129-Reinforcement_Learning).
+See the dated [branch inventory](BRANCHES.md).
 
 ## Repository Structure
 

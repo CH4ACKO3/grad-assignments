@@ -1,0 +1,6 @@
+[project]
+name = "csc6124-graph-computing"
+version = "0.1.0"
+description = "Graph Computing coursework documents"
+requires-python = ">=3.12"
+dependencies = []

@@ -1,53 +1,43 @@
-﻿# Graduate Assignments
+# Graduate Assignments
 
-This repository contains my personal course assignments' solutions and source code. 
+This is the **DDA6040 — Dynamic Programming and Stochastic Control** branch. Its coursework is in `DDA6040-Dynamic_Programming_and_Stochastic_Control/`. Other courses live on their own branches.
 
-## Course Overview
+## Courses
 
-| Course | PDFs | Code | LaTeX Source |
-|--------|------|------|-------|
-| **CSC6001** - Analysis of Algorithms | [A1](CSC6001-Analysis_of_Algorithms/tex/assignment_1.pdf) <br> [A2](CSC6001-Analysis_of_Algorithms/tex/assignment_2.pdf) <br> [A3](CSC6001-Analysis_of_Algorithms/tex/assignment_3.pdf) <br> [A4](CSC6001-Analysis_of_Algorithms/tex/assignment_4.pdf) | [Code](CSC6001-Analysis_of_Algorithms/code/) | [A1](CSC6001-Analysis_of_Algorithms/assignment_1.tex) <br> [A2](CSC6001-Analysis_of_Algorithms\assignment_2.tex) <br> [A3](CSC6001-Analysis_of_Algorithms\assignment_3.tex) <br> [A4](CSC6001-Analysis_of_Algorithms\assignment_4.tex) |
-| **CSC6022** - Machine Learning | [A1](CSC6022-Machine_Learning/prompt/Assignment1_new.pdf) <br> [A2](CSC6022-Machine_Learning/prompt/Assignment2.pdf) <br> [A3](CSC6022-Machine_Learning/prompt/Assignment3.pdf) | [Code](CSC6022-Machine_Learning/code/) | [A1](CSC6022-Machine_Learning/tex/assignment_1.pdf) <br> [A2](CSC6022-Machine_Learning/tex/assignment_2.pdf) <br> [A3](CSC6022-Machine_Learning/tex/assignment_3.pdf) |
-| **DDA6040** - Dynamic Programming and Stochastic Control | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment1.pdf) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment2.pdf) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/prompt/DDA6040_assignment_3.pdf) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/final_project.pdf) | [Code](DDA6040-Dynamic_Programming_and_Stochastic_Control/code/) | [A1](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_1.pdf) <br> [A2](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_2.pdf) <br> [A3](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/assignment_3.pdf) <br> [Final Project](DDA6040-Dynamic_Programming_and_Stochastic_Control/tex/final_project.pdf) |
+| Code | Course | Branch | Coursework |
+| --- | --- | --- | --- |
+| CSC6001 | Analysis of Algorithms | [`csc6001`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6001) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6001/CSC6001-Analysis_of_Algorithms) |
+| CSC6022 | Machine Learning | [`csc6022`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6022) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6022/CSC6022-Machine_Learning) |
+| CSC6052 | Natural Language Processing | [`csc6052`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6052) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6052/CSC6052-Natural_Language_Processing) |
+| CSC6124 | Graph Computing | [`csc6124`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6124) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6124/CSC6124-Graph_Computing) |
+| CSC6129 | Reinforcement Learning | [`csc6129`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6129) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6129/CSC6129-Reinforcement_Learning) |
+| CSC6300 | Thesis Research (I) | [`csc6300`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6300) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6300/CSC6300-Thesis_Research_%28I%29) |
+| DDA6040 | Dynamic Programming and Stochastic Control | [`dda6040`](https://github.com/CH4ACKO3/grad-assignments/tree/dda6040) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/dda6040/DDA6040-Dynamic_Programming_and_Stochastic_Control) |
 
-## Repository Structure
+CSC6124 currently contains the page 32 question and a blank answer template.
 
-- `common_files/` - Shared course information and utilities
-- `template/` - Template for new course folders
-- `CourseCode-CourseTitle/` - Individual course folders containing:
-  - `prompt/` - Assignment PDF files
-  - `code/` - Source code and data files
-  - `tex/` - Compiled LaTeX documents
-  - `pyproject.toml` - Python project configuration (uv/venv)
-  - `assignment_*.tex` - LaTeX source files
+## Working with a course
 
-## Environment Setup
+Commit or stash your current work before switching branches.
 
-This project uses [uv](https://github.com/astral-sh/uv) for Python environment management. Each course folder has its own `pyproject.toml` file defining the project dependencies.
-
-### Setting up a project environment:
-
-```bash
-# Navigate to the course folder
-cd CourseCode-CourseTitle
-
-# Create and activate a virtual environment with uv
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
-uv pip install -e .
+```sh
+git fetch origin
+git switch csc6124
+# On a fresh clone if the local branch does not exist:
+# git switch --track origin/csc6124
 ```
 
-### Using the environment:
+Course folders keep their existing names and files. Compile LaTeX from inside
+the course folder using its existing instructions. Python environments, when
+needed, remain separate for each course.
 
-```bash
-# Activate the virtual environment
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+`common_files/` holds shared information and `template/` holds reusable templates.
+See [BRANCHES.md](BRANCHES.md) for the branch layout and migration record.
 
-# Run Python scripts
-python code/your_script.py
-```
+Commit assignment changes on the corresponding course branch. Do not merge a
+whole course branch into main: main intentionally has no coursework folders.
+For shared template changes, commit them separately on main and cherry-pick
+that specific shared-files commit onto the course branches that need it.
 
 ## Statement on Code Usage, Templates, and Plagiarism
 

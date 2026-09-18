@@ -8,7 +8,10 @@
 
 > Can you show the result of iterative depth-first traversal?
 
-Refer to page 32 of the original lecture note for the graph and pseudocode.
+The template includes the graph and pseudocode from page 32.
+`page32_graph.tex` preserves the source graph's node positions and line geometry
+as vector drawing commands. `page32_pseudocode.txt` transcribes the source code
+with normalized indentation; it is supplied question material, not a solution.
 The original slide deck is not included in this repository change.
 
 The notice provided does not state an assignment number, deadline, required filename,

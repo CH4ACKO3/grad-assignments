@@ -5,6 +5,8 @@
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{listings}
 \usepackage[hidelinks]{hyperref}
 
 \setlrmarginsandblock{3cm}{3cm}{*}
@@ -32,9 +34,12 @@
 \newcommand{\placeholder}[1]{\textcolor{gray}{\textit{[#1]}}}
 
 \begin{document}
-\maketitle
+\begin{center}
+{\Large\bfseries CSC6124 --- Graph Computing}\\[0.4em]
+{\large\ExerciseTitle}\\[0.7em]
+\StudentName\quad\textbar\quad\StudentID\quad\textbar\quad\SubmissionDate
+\end{center}
 \thispagestyle{plain}
-\vspace{-1em}
 
 \section{Exercise}
 \textbf{Source:} Topic 1: Graph Traversal-1, page 32 (Quick exercise).
@@ -43,12 +48,18 @@
 Can you show the result of iterative depth-first traversal?
 \end{quote}
 
-% Consult the graph and pseudocode in your own lecture note.
-% No answer, traversal trace, or algorithmic hints are supplied here.
+\begin{center}
+\input{prompt/page32_graph.tex}
+\end{center}
+
+\textbf{Given pseudocode (lecture note, page 32):}
+\lstinputlisting[basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,keepspaces=true,showstringspaces=false,
+  aboveskip=0.3em,belowskip=0.3em]{prompt/page32_pseudocode.txt}
+
+% No answer or traversal trace is supplied here.
 \section{Answer}
 \placeholder{Write your independently completed answer here.}
-
-\vspace{1.2cm}
 
 % This section is optional unless your instructor requires working.
 % Remove it if it is unnecessary for your submission.

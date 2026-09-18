@@ -1,0 +1,18 @@
+void Graph::depth_first_traversal( Vertex first ) {
+    bool<Vertex> visited(|V|, false);
+    visited[first] = true;
+    stack<Vertex> stack;
+    stack.push( first );
+
+    while ( !stack.empty() ) {
+        Vertex v = stack.top();
+        stack.pop();
+        print the vertex v;
+        for ( Vertex w : v.adjacent_vertices() ) {
+            if ( ! visited[w] ) {
+                visited[w] = true;
+                stack.push( w );
+            }
+        }
+    }
+}

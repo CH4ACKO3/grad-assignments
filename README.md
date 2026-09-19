@@ -18,6 +18,9 @@ CSC6124 currently contains the page 32 question and a blank answer template.
 
 ## Working with a course
 
+See the [LaTeX layout and worktree guide](common_files/LATEX.md) for shared conventions.
+Open the dedicated course worktree when one exists; `git worktree list` shows its location.
+
 Commit or stash your current work before switching branches.
 
 ```sh

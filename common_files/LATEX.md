@@ -29,7 +29,7 @@ latexmk assignment_1.tex
 ```
 
 Use the actual document filename. The course `.latexmkrc` sets PDF mode and
-`tex/` output. DDA6040 defaults to XeLaTeX for its Chinese-language document;
+`tex/` output. CSC6011 and DDA6040 default to XeLaTeX for their Chinese-language templates;
 other courses default to pdfLaTeX. Engine overrides remain available.
 From the worktree root:
 

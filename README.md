@@ -1,6 +1,6 @@
 # Graduate Assignments
 
-This branch contains shared templates and a course index. Coursework lives on the course branches below.
+This is the **CSC6011 — Theory of Computation** branch. Coursework is in `CSC6011-Theory_of_Computation/`. Other courses live on their own branches.
 
 ## Courses
 

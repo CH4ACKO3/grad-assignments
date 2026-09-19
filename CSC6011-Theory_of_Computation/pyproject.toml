@@ -1,0 +1,6 @@
+[project]
+name = "csc6011-theory-of-computation"
+version = "0.1.0"
+description = "Theory of Computation coursework documents"
+requires-python = ">=3.12"
+dependencies = []

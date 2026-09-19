@@ -8,9 +8,9 @@
 老师的通知由用户提供，记录于 `prompt/quick_exercise_32.md`。
 作业编号、截止时间、提交平台及文件名规则尚未提供。
 
-- `quick_exercise_32.tex`：可编辑的提交模板，未填写答案。
+- `quick_exercise_32.tex`：主文档，在这里编辑自己的答案。
 - `prompt/page32_graph.tex`、`prompt/page32_pseudocode.txt`：第 32 页原题的图和伪代码，编译时需与主文件一起保留。
-- `tex/quick_exercise_32.pdf`：模板预览，当前不可作为已完成作业提交。
+- `tex/quick_exercise_32.pdf`：由当前主文档编译生成的 PDF；是否可提交由你核对内容后决定。
 - `AGENTS.md`：本课程的辅助范围，供后续工具遵守。
 - `code/data/`、`code/result/`：按仓库约定预留；本题不需要运行代码。
 
@@ -27,13 +27,40 @@
 
 AI 的本次工作仅为仓库整理与空白模板排版。课程禁止 AI 解题；若课程另要求披露格式辅助，请按实际使用情况自行填写，模板不代写任何诚信声明。
 
-## 编译
+## 文件结构与编译
+
+沿用仓库约定：主 `.tex` 放课程根目录，`tex/` 是编译输出目录，不是源码目录。
+
+```text
+CSC6124-Graph_Computing/
+  .latexmkrc                 默认编译配置
+  quick_exercise_32.tex      主文档
+  prompt/                   题目说明、图形源码与伪代码
+  tex/
+    quick_exercise_32.pdf    唯一的当前 PDF
+    ...                     aux、log、synctex 等临时产物
+```
+
+保留 `prompt/` 与主文档的相对位置；不要把主 `.tex` 单独移到 `tex/`。
 
 在本课程目录运行（需要已安装的 TeX Live / MiKTeX 与 latexmk）：
 
 ```powershell
-latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=tex quick_exercise_32.tex
+latexmk quick_exercise_32.tex
 ```
 
-结果位于 `tex/quick_exercise_32.pdf`。本题无需 Python 环境或额外数据。
+`.latexmkrc` 会默认生成 PDF，并把 PDF 和编译临时文件统一写入 `tex/`。
+从仓库根目录编译时使用：
+
+```powershell
+latexmk -cd -pdf -synctex=1 -interaction=nonstopmode -halt-on-error -outdir=tex CSC6124-Graph_Computing/quick_exercise_32.tex
+```
+
+若使用 VS Code / Cursor 的 LaTeX Workshop，设置 `latex-workshop.latex.outDir`
+为 `%DIR%/tex`，并让 latexmk recipe 使用 `-outdir=%OUTDIR%`。
+当前本地工作区已配置；`.vscode/` 按仓库规则不提交。
+直接运行 `pdflatex` 不会读取 `.latexmkrc`，因此建议统一使用上述 latexmk 命令。
+
+结果位于 `tex/quick_exercise_32.pdf`，课程根目录不保留第二份 PDF。
+编译临时文件由仓库 `.gitignore` 忽略。本题无需 Python 环境或额外数据。
 `pyproject.toml` 仅保留仓库的课程目录约定，不包含解题程序或依赖。

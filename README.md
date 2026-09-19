@@ -7,6 +7,7 @@ This branch contains shared templates and a course index. Coursework lives on th
 | Code | Course | Branch | Coursework |
 | --- | --- | --- | --- |
 | CSC6001 | Analysis of Algorithms | [`csc6001`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6001) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6001/CSC6001-Analysis_of_Algorithms) |
+| CSC6011 | Theory of Computation | [`csc6011`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6011) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6011/CSC6011-Theory_of_Computation) |
 | CSC6022 | Machine Learning | [`csc6022`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6022) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6022/CSC6022-Machine_Learning) |
 | CSC6052 | Natural Language Processing | [`csc6052`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6052) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6052/CSC6052-Natural_Language_Processing) |
 | CSC6124 | Graph Computing | [`csc6124`](https://github.com/CH4ACKO3/grad-assignments/tree/csc6124) | [Files](https://github.com/CH4ACKO3/grad-assignments/tree/csc6124/CSC6124-Graph_Computing) |
